@@ -1,0 +1,447 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@theme {
+  --color-void: #000000;
+  --color-ink: #0a0a0c;
+  --color-ember: #ff5a1f;
+  --color-violet: #b26bff;
+  --color-mint: #3dffa8;
+  --color-fog: #8a8a93;
+  --color-line: rgba(255, 255, 255, 0.06);
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  color-scheme: dark;
+  --glass: rgba(10, 10, 12, 0.72);
+  --glass-strong: rgba(8, 8, 10, 0.88);
+  --dock-h: 76px;
+  --page-bg: #000;
+  --panel-solid: rgba(6, 6, 12, 0.95);
+  --sheet-foot: rgba(8, 8, 10, 0.92);
+  --lens: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03));
+  --lens-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 6px 20px rgba(0, 0, 0, 0.4);
+  --rail-ink: 255, 255, 255;
+}
+
+html {
+  -webkit-text-size-adjust: 100%; /* iOS must not inflate the UI text */
+  text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text-base, #ededf0);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* base layer: Tailwind text-* utilities on buttons must win over this reset */
+@layer base {
+  button {
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+}
+::selection {
+  background: rgba(255, 90, 31, 0.35);
+}
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--color-line);
+}
+.glass-strong {
+  background: var(--glass-strong);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid var(--color-line);
+}
+
+.hairline {
+  border-color: var(--color-line);
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.01));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.35s var(--ease-expo);
+}
+.chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.chip[data-on="true"] {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 18px rgba(255, 255, 255, 0.06);
+}
+
+.btn-ember,
+.btn-black,
+.btn-ghost,
+.glass-btn {
+  position: relative;
+  isolation: isolate;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 14px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.015));
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -1px 0 rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.35);
+  transition: transform 0.35s var(--ease-expo), border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+.btn-ghost {
+  font-weight: 500;
+}
+/* moving sheen: a light band sweeps across the glass on hover */
+.btn-ember::before,
+.btn-black::before,
+.btn-ghost::before,
+.glass-btn::before,
+.chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.16) 48%, transparent 66%);
+  background-size: 250% 100%;
+  background-position: 130% 0;
+  transition: background-position 0.9s var(--ease-expo);
+  z-index: -1;
+}
+.btn-ember:hover::before,
+.btn-black:hover::before,
+.btn-ghost:hover::before,
+.glass-btn:hover::before,
+.chip:hover::before {
+  background-position: -30% 0;
+}
+.btn-ember:hover,
+.btn-black:hover,
+.btn-ghost:hover,
+.glass-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.03));
+}
+.btn-ember:disabled,
+.btn-black:disabled,
+.btn-ghost:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* click ripple — injected by lib/fx.ts into every button */
+.fx-clip {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fx-ripple {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.08) 60%, transparent 70%);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  padding: 11px 14px;
+  outline: none;
+  color: #fff;
+  font-size: 14px;
+}
+.input:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.input::placeholder {
+  color: #55555d;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-violet);
+  box-shadow: 0 0 10px var(--color-violet);
+  animation: breathe 2.4s ease-in-out infinite;
+}
+.ember-dot {
+  background: var(--color-ember);
+  box-shadow: 0 0 10px var(--color-ember);
+}
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+}
+
+/* MapLibre chrome → opinion */
+.maplibregl-ctrl-attrib {
+  background: rgba(0, 0, 0, 0.5) !important;
+  color: #444 !important;
+  font-size: 9px !important;
+}
+.maplibregl-ctrl-attrib a {
+  color: #555 !important;
+}
+.maplibregl-ctrl-attrib-button {
+  filter: invert(1) opacity(0.4);
+}
+.maplibregl-canvas {
+  outline: none;
+}
+
+/* floating comment bubbles on the map */
+.bubble {
+  pointer-events: none;
+  max-width: 180px;
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 6px 9px;
+  border-radius: 12px 12px 12px 3px;
+  background: rgba(12, 12, 14, 0.85);
+  border: 1px solid rgba(178, 107, 255, 0.35);
+  color: #e9e3f5;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 0 24px rgba(178, 107, 255, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+}
+
+@keyframes toast {
+  from { opacity: 0; transform: translateY(-10px) scale(.97); filter: blur(6px); }
+}
+
+/* The N in OPINION wears Solana's gradient (purple → teal → green, diagonal like their mark).
+   The background slowly drifts so the colour shimmers while the letter spins. */
+.sol-n {
+  background: linear-gradient(135deg, #9945ff 0%, #8752f3 18%, #5497d5 45%, #43b4ca 62%, #28e0b9 80%, #19fb9b 100%);
+  background-size: 125% 125%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(153, 69, 255, 0.35)) drop-shadow(0 0 14px rgba(25, 251, 155, 0.18));
+  animation: sol-shift 6s ease-in-out infinite alternate;
+  padding: 0 0.02em; /* keep the clipped gradient from shaving the letter edges */
+}
+@keyframes sol-shift {
+  from { background-position: 0% 0%; }
+  to { background-position: 100% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sol-n { animation: none; }
+}
+
+/* Breakpoint-style landmark label: black slab, mono caps, Solana rule */
+.bp-label {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 9px 12px 8px;
+  min-width: 190px;
+  box-shadow: 0 0 40px rgba(153, 69, 255, 0.35), 0 0 80px rgba(20, 241, 149, 0.12);
+  transition: transform 0.4s var(--ease-expo), box-shadow 0.4s;
+}
+.bp-label:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 50px rgba(153, 69, 255, 0.55), 0 0 90px rgba(20, 241, 149, 0.25);
+}
+.bp-label .t { font-size: 12px; font-weight: 700; }
+.bp-label .s { font-size: 10px; color: rgba(255, 255, 255, 0.6); margin-top: 3px; }
+.bp-label .rule { height: 2px; margin: 7px 0 6px; background: linear-gradient(90deg, #9945ff, #14f195); }
+.bp-label .tag { display: inline-block; font-size: 9.5px; padding: 2px 6px; margin-right: 6px; color: #000; background: #14f195; font-weight: 700; }
+.bp-label .tag.p { background: #9945ff; color: #fff; }
+
+/* Belgrade: pastel-gold variant of the landmark slab */
+.bp-label.gold { box-shadow: 0 0 44px rgba(255, 217, 138, 0.38), 0 0 90px rgba(231, 200, 140, 0.16); border-color: rgba(255, 227, 166, 0.3); }
+.bp-label.gold .rule { background: linear-gradient(90deg, #e7c88c, #fff2d2, #e7c88c); }
+.bp-label.gold .tag { background: #ffe3a6; color: #1a1205; }
+
+/* horizontal strips that scroll without a visible bar (home tabs on narrow phones) */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ── entry: perspective grid under the splash globe */
+.sp-grid {
+  background-image: linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transform: perspective(600px) rotateX(62deg);
+  transform-origin: 50% 0;
+  mask-image: linear-gradient(transparent, #000 40%);
+  animation: sp-grid 6s linear infinite;
+}
+@keyframes sp-grid { to { background-position: 0 56px, 0 0; } }
+
+/* ── world view: city beacons on the globe */
+.globe-city { position: relative; display: flex; align-items: center; gap: 8px; cursor: pointer; background: none; border: 0; padding: 6px; }
+.globe-city i { position: relative; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #14f195, 0 0 22px #9945ff; }
+.globe-city i::before, .globe-city i::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid #14f195; animation: gc-ping 2.4s var(--d, 0s) cubic-bezier(.16,1,.3,1) infinite; }
+.globe-city i::after { border-color: #9945ff; animation-delay: calc(var(--d, 0s) + 1.2s); }
+.globe-city span { font: 600 12px/1 'Space Grotesk', Inter, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #fff; padding: 5px 8px; border-radius: 9px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background .3s, border-color .3s; }
+.globe-city:hover span { background: rgba(153,69,255,.35); border-color: rgba(20,241,149,.6); }
+@keyframes gc-ping { from { transform: scale(.6); opacity: 1; } to { transform: scale(3.2); opacity: 0; } }
+.maplibregl-map:not(.world) .globe-city { display: none; }
+/* from space, street-level labels and bubbles would float over oceans */
+.maplibregl-map.world .bp-label, .maplibregl-map.world .bubble { display: none; }
+@media (prefers-reduced-motion: reduce) { .sp-grid, .globe-city i::before, .globe-city i::after { animation: none; } }
+
+
+/* ═══════════════ LIGHT THEME ═══════════════
+   Tailwind v4 colour utilities read --color-white / --color-black, so flipping them re-themes the whole UI:
+   "white" text becomes ink, white tints become ink tints, black scrims become white. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-white: #0c0c12;
+  --color-black: #ffffff;
+  --color-fog: #6b6c78;
+  --color-line: rgba(12, 12, 24, 0.09);
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(251, 251, 253, 0.9);
+  --page-bg: #eef0f4;
+  --text-base: #16161d;
+  --panel-solid: rgba(252, 252, 254, 0.97);
+  --sheet-foot: rgba(250, 250, 253, 0.95);
+  --lens: linear-gradient(180deg, rgba(12, 12, 24, 0.09), rgba(12, 12, 24, 0.03));
+  --lens-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 14px rgba(20, 20, 50, 0.1);
+  --rail-ink: 20, 20, 32;
+}
+:root[data-theme="light"] .glass,
+:root[data-theme="light"] .glass-strong {
+  box-shadow: 0 8px 30px rgba(20, 20, 50, 0.08);
+}
+:root[data-theme="light"] .btn-ember,
+:root[data-theme="light"] .btn-black,
+:root[data-theme="light"] .btn-ghost,
+:root[data-theme="light"] .glass-btn {
+  color: #111118;
+  border-color: rgba(12, 12, 24, 0.11);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 245, 249, 0.82));
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(12, 12, 24, 0.05), 0 8px 22px rgba(20, 20, 50, 0.1);
+}
+:root[data-theme="light"] .btn-ember:hover,
+:root[data-theme="light"] .btn-black:hover,
+:root[data-theme="light"] .btn-ghost:hover,
+:root[data-theme="light"] .glass-btn:hover {
+  border-color: rgba(12, 12, 24, 0.24);
+  background: linear-gradient(180deg, #fff, rgba(240, 241, 246, 0.9));
+}
+:root[data-theme="light"] .chip {
+  border-color: rgba(12, 12, 24, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 245, 249, 0.7));
+}
+:root[data-theme="light"] .chip:hover { border-color: rgba(12, 12, 24, 0.22); }
+:root[data-theme="light"] .chip[data-on="true"] { border-color: rgba(12, 12, 24, 0.45); }
+:root[data-theme="light"] .input { background: rgba(255, 255, 255, 0.85); color: #111118; }
+:root[data-theme="light"] .input:focus { border-color: rgba(12, 12, 24, 0.35); }
+:root[data-theme="light"] .fx-ripple { background: radial-gradient(circle, rgba(12, 12, 24, 0.22), rgba(12, 12, 24, 0.05) 60%, transparent 70%); }
+:root[data-theme="light"] .bubble {
+  background: rgba(255, 255, 255, 0.92);
+  color: #2a2338;
+  box-shadow: 0 6px 18px rgba(80, 40, 140, 0.14);
+}
+:root[data-theme="light"] .maplibregl-ctrl-attrib { background: rgba(255, 255, 255, 0.6); }
+
+/* things that stay dark in both themes (the brand intro) */
+.force-dark {
+  color-scheme: dark;
+  --color-white: #fff;
+  --color-black: #000;
+  --color-fog: #8a8a93;
+  --color-line: rgba(255, 255, 255, 0.06);
+  color: #ededf0;
+}
+
+/* navigation destination pin */
+.nav-pin { width: 26px; height: 34px; pointer-events: none; }
+.nav-pin i { display: block; width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: linear-gradient(135deg, #9945ff, #14f195); box-shadow: 0 0 0 3px #000, 0 0 22px rgba(20, 241, 149, 0.7); animation: nav-pin 1.6s cubic-bezier(.16,1,.3,1) infinite alternate; }
+@keyframes nav-pin { to { transform: rotate(-45deg) translate(3px, -3px); } }
+@media (prefers-reduced-motion: reduce) { .nav-pin i { animation: none; } }
+
+/* intro HUD rings: same as useopinion.io (Solana gradient strokes), each ring turning at its own pace */
+.sp-rings { width: min(118vmin, 1180px); height: min(118vmin, 1180px); overflow: visible; }
+.sp-rings circle, .sp-rings path, .sp-rings line { fill: none; stroke: url(#spSolRing); stroke-opacity: .55; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sp-rings .faint { stroke-opacity: .3; }
+.sp-rings .ticks { stroke-opacity: .7; stroke-dasharray: 1 11.5; stroke-width: 6; vector-effect: none; }
+.sp-rings .ticks.fine { stroke-dasharray: 1 7; stroke-width: 4; stroke-opacity: .45; }
+.sp-rings .dash { stroke-dasharray: 2 6; }
+.sp-rings .arc { stroke-opacity: 1; stroke-width: 1.4; }
+.sp-rings text { fill: url(#spSolRing); font: 500 11px ui-monospace, SFMono-Regular, monospace; letter-spacing: .2em; text-anchor: middle; dominant-baseline: middle; }
+.sp-rings .cl-card { font-size: 15px; font-weight: 700; }
+.sp-rings .cl-deg { fill-opacity: .7; font-size: 9px; }
+.sp-rings .ring { transform-origin: 0 0; transform-box: view-box; }
+.sp-rings .r1 { animation: sp-spin 90s linear infinite; }
+.sp-rings .r2 { animation: sp-spin 140s linear infinite reverse; }
+.sp-rings .r3 { animation: sp-spin 220s linear infinite; }
+.sp-rings .r4 { animation: sp-spin 300s linear infinite reverse; }
+@keyframes sp-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sp-rings .ring { animation: none; } }

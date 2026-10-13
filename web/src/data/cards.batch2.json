@@ -1,0 +1,421 @@
+[
+  {
+    "id": "coinbase-card",
+    "name": "Coinbase Card",
+    "issuer": "Coinbase",
+    "network": "Visa",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": "Up to 4% back in crypto rewards (US); rewards do not expire",
+    "fees": "No annual fee; zero spending fees stated",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "available",
+      "RS": "not_available",
+      "USCA": "available"
+    },
+    "url": "https://www.coinbase.com/card",
+    "sources": [
+      "https://www.coinbase.com/card",
+      "https://help.coinbase.com/en/coinbase/trading-and-funding/coinbase-card/cb-card-apply",
+      "https://help.coinbase.com/en/coinbase/trading-and-funding/other/coinbase-card-faq",
+      "https://www.coinbase.com/en-gb/card"
+    ],
+    "notes": "Coinbase pages returned HTTP 403 to fetch; facts taken from official-page search excerpts. US: all states except Hawaii (so New York is included); one excerpt calls the US card prepaid. Serbia not in the issuer's eligible-country list. Solana spending not confirmed on card pages. CA: Issuer: US card available in all states except Hawaii (via search excerpts of official card page; coinbase.com 403s).",
+    "brand": [
+      "#0052FF",
+      "#0A0B0D"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "binance-card",
+    "name": "Binance Card",
+    "issuer": "Binance",
+    "network": "Visa",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": null,
+    "fees": "Program discontinued; no current fee schedule",
+    "physical": true,
+    "virtual": false,
+    "countries": {
+      "GB": "not_available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://www.binance.com/en/support/faq/frequently-asked-questions-on-binance-card-eea-program-closure-d6c54984df904db7a0705f2914827381",
+    "sources": [
+      "https://www.binance.com/en/square/post/45832",
+      "https://www.binance.com/en/support/faq/frequently-asked-questions-on-binance-card-eea-program-closure-d6c54984df904db7a0705f2914827381",
+      "https://www.binance.com/en/square/post/1024815"
+    ],
+    "notes": "Binance's own posts say EEA card service closed 20 Dec 2023 and LatAm/Middle East card was shut down; UK, US and Serbia were never in the eligible list. No current Binance Card found. CA: No current Binance Card; US never eligible.",
+    "brand": [
+      "#F0B90B",
+      "#1E2026"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "okx-card",
+    "name": "OKX Card",
+    "issuer": "OKX",
+    "network": "Mastercard",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": "2-5% in USDG by VIP tier (up to 10% VIP 4+), monthly caps EUR 10-1,000",
+    "fees": "No card/transaction/FX fees; 0.1% market spread on conversion",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "unknown",
+      "US": "not_available",
+      "RS": "unknown",
+      "USCA": "not_available"
+    },
+    "url": "https://www.okx.com/en-us/pay",
+    "sources": [
+      "https://www.okx.com/en-us/learn/okx-card-europe-explained",
+      "https://www.okx.com/en-us/help/whats-okx-card",
+      "https://www.okx.com/en-us/help/okx-what-can-i-use-in-the-united-kingdom",
+      "https://www.okx.com/en-us/pay",
+      "https://www.okx.com/en-us/help/okx-cardholder-agreement-bolt"
+    ],
+    "notes": "Official pages list EEA (EU + Norway, not Iceland/Liechtenstein), Brazil, South Asia and some African countries; UK help page does not mention the card; Serbia and US not stated. Pays in USDT/USDC/USDG; chains not stated. Second pass: the OKX Cardholder Agreement (Bolt) lists the United States of America (incl. territories) among jurisdictions where the card is not available (scope is that card product's agreement). GB and RS remain unknown: official pages only say 'select regions', EEA card for EU + Norway, and the UK help page does not mention the card. CA: OKX Cardholder Agreement lists the US as a jurisdiction where the card is not available.",
+    "brand": [
+      "#000000",
+      "#7A7A7A"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "krak-card",
+    "name": "Krak Card",
+    "issuer": "Kraken (Krak)",
+    "network": "Mastercard",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": "Up to 2% in cash or crypto; metal card unlocks more",
+    "fees": "No annual/monthly/transaction/FX/ATM fees from Krak; replacement card 4.99",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "available"
+    },
+    "url": "https://krak.app/card",
+    "sources": [
+      "https://krak.app/card",
+      "https://support.krak.app/articles/krak-card-faqs",
+      "https://support.krak.app/articles/getting-started-with-us-krak-card",
+      "https://support.krak.app/articles/supported-regions-and-currencies-on-krak"
+    ],
+    "notes": "UK/EEA card is Mastercard; US card (launched Aug 2026) is Visa issued by Lead Bank but unavailable in New York, Maine, Massachusetts and Indiana. Serbia not in the UK/EEA/US eligible list. Spends from 600+ assets; Solana not explicitly confirmed. CA: Issuer excludes only New York, Maine, Massachusetts and Indiana; California not on the excluded list.",
+    "brand": [
+      "#7132F5",
+      "#1B1033"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "nexo-card",
+    "name": "Nexo Card",
+    "issuer": "Nexo",
+    "network": "Mastercard",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": true,
+    "cashback": "Up to 2% in NEXO or 0.5% in BTC by loyalty tier (min balance applies)",
+    "fees": "No monthly/annual fee; FX 0.2-2.5% by day/region; ATM free to tier limit then 2%",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "unknown",
+      "USCA": "not_available"
+    },
+    "url": "https://nexo.com/eea/crypto-card",
+    "sources": [
+      "https://nexo.com/eea/crypto-card",
+      "https://nexo.com/en-gb/crypto-card",
+      "https://nexo.com/blog/nexo-card-spend-crypto-without-selling",
+      "https://support.nexo.com/article/who-can-order-the-nexo-card"
+    ],
+    "notes": "Dual debit/credit mode (credit mode borrows against crypto). Available only to residents of selected European countries (EEA + UK); the support country list could not be read so Serbia is unconfirmed. Physical card needs Gold tier; Solana spend per Nexo blog excerpt. CA: Card only for EEA + UK residents; US not offered.",
+    "brand": [
+      "#1A4199",
+      "#0B1F4D"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "wirex-card",
+    "name": "Wirex Card",
+    "issuer": "Wirex",
+    "network": "Visa",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [
+      "Solana",
+      "Ethereum",
+      "Polygon",
+      "Tron",
+      "Stellar"
+    ],
+    "solana": true,
+    "cashback": "0.5-8% Cryptoback in USD by plan",
+    "fees": "No monthly/annual fee; zero FX fees stated",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://www.wirexapp.com/stablecoin-and-crypto-card",
+    "sources": [
+      "https://www.wirexapp.com/stablecoin-and-crypto-card",
+      "https://help.wirexapp.com//article/supported-countries-1189",
+      "https://help.wirexapp.com/article/how-to-deposit-crypto-into-your-wirex-account-1240"
+    ],
+    "notes": "Supported-countries table: card available in UK, marked N/A for US and Serbia. Physical card can be Visa or Mastercard. CA: Issuer supported-countries table marks US as N/A (whole US).",
+    "brand": [
+      "#1D6BFF",
+      "#0B1B3F"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "revolut-crypto-card",
+    "name": "Revolut (crypto-enabled card)",
+    "issuer": "Revolut",
+    "network": "Visa",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": null,
+    "fees": "No exchange fee when paying with crypto (fair-usage fees may apply)",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://www.revolut.com/crypto/crypto-card/",
+    "sources": [
+      "https://www.revolut.com/crypto/crypto-card/",
+      "https://help.revolut.com/help/wealth/cryptocurrencies/crypto-payments/setting-up-a-virtual-crypto-card/",
+      "https://www.revolut.com/legal/cryptocurrency-terms/",
+      "https://www.revolut.com/en-US/legal/cryptocurrency-terms/",
+      "https://help.revolut.com/help/profile-and-plan/profile-plan/verifying-identity/what-countries-are-supported/"
+    ],
+    "notes": "Revolut pages returned HTTP 403 to fetch; facts from official search excerpts. Crypto card pay is only for 'eligible locations' and the list was not readable; GB inferred from GBP limits on the official page. Card network can be Visa or Mastercard. Second pass (revolut.com 403s to fetch; read via official search excerpts): US terms state that as of 3 Oct 2023 Revolut Technologies Inc. does not offer cryptocurrency services, so no crypto card for US. Revolut's 'Where you can sign up' help page is a closed list (Australia, Brazil, EEA, Japan, Mexico waitlist, New Zealand, Singapore, Switzerland, UK, US) that omits Serbia, and the card needs a Revolut account, so RS is not_available for Serbian residents. CA: Revolut US terms: no crypto services in US since 3 Oct 2023.",
+    "brand": [
+      "#191C1F",
+      "#0075EB"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "uphold-card",
+    "name": "Uphold Card",
+    "issuer": "Uphold",
+    "network": "Mastercard",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": "UK 1% (cap GBP 100/mo); US 2% Essential, up to 4% XRP Elite",
+    "fees": "UK: no annual fee, GBP 9.95 physical shipping, no FX fee; US Elite 99.99/yr",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "available"
+    },
+    "url": "https://uphold.com/en-gb/products/debit-card",
+    "sources": [
+      "https://uphold.com/en-gb/products/debit-card",
+      "https://uphold.com/en-us/debit-card",
+      "https://support.uphold.com/hc/en-us/articles/41075568753691-Eligibility-Availability"
+    ],
+    "notes": "Issued only to US and UK residents; US excludes New York, Louisiana and territories; US card is a prepaid debit card. Spends from 300+ crypto assets; Solana not explicitly confirmed. Some Uphold pages returned 403, excerpts used. CA: Issuer excludes only New York, Louisiana and territories; California not on the excluded list (via search excerpts; some Uphold pages 403).",
+    "brand": [
+      "#49CC68",
+      "#0A2E1A"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "trustee-plus",
+    "name": "Trustee Plus",
+    "issuer": "Trustee Global",
+    "network": null,
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": null,
+    "chains": [
+      "BNB Chain",
+      "Polygon",
+      "Solana",
+      "NEAR",
+      "Ethereum"
+    ],
+    "solana": true,
+    "cashback": null,
+    "fees": null,
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "not_available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://apps.apple.com/np/app/trustee-plus-wallet-card/id1634455978",
+    "sources": [
+      "https://apps.apple.com/np/app/trustee-plus-wallet-card/id1634455978",
+      "https://trustee.io/news/physical-payment-cards-trustee-plus/"
+    ],
+    "notes": "Could not verify: issuer site trustee.plus did not render and no fee, network, KYC or country page was readable. Only the issuer's app-store listing excerpt (SOL, NEAR, ERC20, USDC on BSC supported; free maintenance) was seen. Not verified. Second pass: issuer news (Mar 2025) says physical cards are limited to the EEA ('only adult users residing in EEA countries are eligible') and virtual cards are for adult users who provided a temporary or permanent residential address in EEA countries; so UK, US and Serbia are not_available unless the user has an EEA address. Older trustee.io/cryptocard page still says 'Worldwide Crypto Card' (issued in Great Britain by Wirex), which conflicts; the later EEA terms are used. CA: Issuer terms limit cards to EEA residents; no US offering.",
+    "brand": [
+      "#2F6BFF",
+      "#101A33"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "bleap-card",
+    "name": "Bleap Card",
+    "issuer": "Bleap",
+    "network": "Mastercard",
+    "type": "debit",
+    "custody": "self",
+    "kyc": "full",
+    "chains": [
+      "Arbitrum",
+      "Solana",
+      "Base"
+    ],
+    "solana": true,
+    "cashback": "Up to 20% in USDC",
+    "fees": "No issuance/monthly fee; 0% FX; free ATM up to EUR 400/month",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "not_available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://www.bleap.finance/en-us/card/crypto-card",
+    "sources": [
+      "https://www.bleap.finance/en-us/card/crypto-card",
+      "https://www.bleap.finance/en-us/blog/bleap-vs-wirex"
+    ],
+    "notes": "Available in the EEA and expanding in Latin America; issuer states not currently available in the US. UK and Serbia not mentioned. Non-custodial MPC wallet. Second pass: official card page FAQ states the card 'is currently available to residents of the European Economic Area (EEA) and Latin America', which does not include the UK or Serbia; re-check as Bleap says it is expanding. CA: Issuer states card is for EEA and Latin America residents only; not in US.",
+    "brand": [
+      "#6C4DFF",
+      "#12072E"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "plutus-card",
+    "name": "Plutus Card",
+    "issuer": "Plutus",
+    "network": "Visa",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": "3% base in PLU, up to 9% with levels",
+    "fees": "Starter free; Premium 9.99 and Pro 16.99 per month; physical card order fee",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://www.plutus.it/",
+    "sources": [
+      "https://www.plutus.it/help/currently-supported-countries",
+      "https://www.plutus.it/rewards",
+      "https://www.plutus.it/blog/announcement-plutus-card-to-launch-in-united-states"
+    ],
+    "notes": "Supported-countries page lists UK and EEA states only; a 2022 US waitlist announcement is stale and US is not on the current list. Top-up with fiat or converted crypto. CA: Issuer supported-countries list is UK and EEA only; US not listed.",
+    "brand": [
+      "#E6007A",
+      "#1A0B2E"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "phantom-card",
+    "name": "Phantom Cash Debit Card",
+    "issuer": "Phantom",
+    "network": "Visa",
+    "type": "prepaid",
+    "custody": "self",
+    "kyc": "full",
+    "chains": [
+      "Solana"
+    ],
+    "solana": true,
+    "cashback": null,
+    "fees": "Fees may apply, amounts not stated; no cashback",
+    "physical": false,
+    "virtual": true,
+    "countries": {
+      "GB": "not_available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "available"
+    },
+    "url": "https://help.phantom.com/hc/en-us/articles/44799497237395-About-Phantom-Cash",
+    "sources": [
+      "https://help.phantom.com/hc/en-us/articles/44799497237395-About-Phantom-Cash",
+      "https://help.phantom.com/hc/en-us/articles/44800221533459-Use-your-Phantom-debit-card",
+      "https://phantom.com/learn/crypto-101/reloadable-visa-card"
+    ],
+    "notes": "Phantom does offer a card (virtual Visa, issued by Lead Bank, funded from CASH stablecoin on Solana). US only and excluded in New York, so US is not_available for NY. Daily limit 2,000 USD. CA: Issuer: virtual debit card available only in the US except New York; California not excluded (help.phantom.com article; no explicit state list).",
+    "brand": [
+      "#AB9FF2",
+      "#1C1B2E"
+    ],
+    "checkedAt": "2026-10-07"
+  }
+]

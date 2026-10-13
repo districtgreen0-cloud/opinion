@@ -1,0 +1,8 @@
+# Copy to .dev.vars (gitignored). Local dev only.
+DEV_RETURN_CODES=1
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+# OAUTH_REDIRECT_ORIGIN=http://localhost:8787
+# Earn mode (local only values)
+EARN_SALT=local-dev-salt-change-me-32bytes-minimum
+ADMIN_TOKEN=local-admin-token-at-least-24-chars

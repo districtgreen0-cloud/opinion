@@ -1,0 +1,73 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "opinion",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // SPA built by ../web (npm run build -> web/dist). API paths hit the Worker first.
+  "assets": {
+    "directory": "../web/dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+
+  "durable_objects": {
+    "bindings": [
+      { "name": "HEX_ROOM", "class_name": "HexRoom" },
+      { "name": "ZK_ROOM", "class_name": "ZkRoom" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["HexRoom"] },
+    { "tag": "v2", "new_sqlite_classes": ["ZkRoom"] }
+  ],
+
+  // Earn aggregation + retention cleanup, hourly
+  "triggers": { "crons": ["17 * * * *"] },
+  // Earn secrets: npx wrangler secret put EARN_SALT · npx wrangler secret put ADMIN_TOKEN
+
+  // Memories (camera photos per hex): npx wrangler r2 bucket create opinion-media
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "opinion-media" }],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "opinion-db",
+      // Create with: npx wrangler d1 create opinion-db  -> paste the returned database_id below.
+      "database_id": "REPLACE_WITH_D1_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "vars": {
+    "EPOCH_LENGTH_DAYS": "7",
+    // Earn mode (src/earn.ts). Bump the version when the consent text changes: everyone is asked again.
+    "EARN_TERMS_VERSION": "2026-10-v1",
+    "EARN_K": "50",
+    "H3_RES": "10",
+    // Auth. DEV_RETURN_CODES="1" (only via .dev.vars!) makes /api/auth/email/start return the code in JSON when
+    // email sending is not configured. Never set it to "1" in production.
+    "DEV_RETURN_CODES": "0",
+    // PLACEHOLDER: must be an address on a domain onboarded to Cloudflare Email Service
+    // (npx wrangler email sending enable yourdomain.com). While it contains "example.com" email sending counts as unconfigured.
+    "EMAIL_FROM": "OPINION <login@example.com>"
+    // Optional: OAUTH_REDIRECT_ORIGIN (e.g. "https://opinion.example.workers.dev") to force the Google redirect_uri origin.
+  },
+
+  // Cloudflare Email Service (Email Sending) binding, used for one-time sign-in codes: env.EMAIL.send({...}).
+  // No API key needed. The EMAIL_FROM domain must be onboarded first.
+  "send_email": [{ "name": "EMAIL" }],
+
+  // ---- Auth secrets (never commit) ----
+  //   npx wrangler secret put GOOGLE_CLIENT_ID
+  //   npx wrangler secret put GOOGLE_CLIENT_SECRET
+  // Google Cloud console: APIs & Services -> OAuth consent screen (External, scopes openid/email/profile)
+  //   -> Credentials -> Create credentials -> OAuth client ID -> Web application ->
+  //   Authorized redirect URIs:
+  //     http://localhost:8787/api/auth/google/callback
+  //     https://<prod-host>/api/auth/google/callback
+  // For local dev copy .dev.vars.example to .dev.vars.
+
+  "observability": { "enabled": true }
+}

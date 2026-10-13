@@ -1,0 +1,16 @@
+// Headless preview of the London city. Run: node e2e/london.mjs  (needs `npx vite preview --port 4701` running)
+import { chromium } from 'playwright-core'
+const OUT = new URL('./shots/', import.meta.url).pathname
+const b = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist'] })
+const p = await (await b.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })).newPage()
+const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => m.type() === 'error' && !m.text().includes('createImageBitmap') && errs.push(m.text().slice(0, 140)))
+await p.goto('http://localhost:4701')
+await p.waitForTimeout(2600); await p.screenshot({ path: OUT + 'ldn-splash.png' })
+await p.waitForFunction(() => window.__map?.loaded(), null, { timeout: 120000 }); await p.waitForTimeout(7000)
+await p.screenshot({ path: OUT + 'ldn-somerset.png' })
+await p.evaluate(() => window.__map.jumpTo({ center: [-0.2100, 51.4958], zoom: 16.1, pitch: 64, bearing: 30 }))
+await p.waitForTimeout(4500); await p.screenshot({ path: OUT + 'ldn-olympia.png' })
+await p.evaluate(() => window.__map.jumpTo({ center: [-0.1640, 51.5040], zoom: 13.3, pitch: 58, bearing: -15 }))
+await p.waitForTimeout(4500); await p.screenshot({ path: OUT + 'ldn-overview.png' })
+console.log(JSON.stringify({ city: await p.locator('header, [aria-expanded]').first().innerText().catch(() => ''), labels: await p.locator('.bp-label').count(), errs }))
+await b.close()

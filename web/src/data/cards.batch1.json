@@ -1,0 +1,407 @@
+[
+  {
+    "id": "kast",
+    "name": "KAST",
+    "issuer": "KAST (licensed card-issuing partners)",
+    "network": "Visa",
+    "type": "debit",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [
+      "Ethereum",
+      "Solana",
+      "Polygon",
+      "Arbitrum",
+      "TRON"
+    ],
+    "solana": true,
+    "cashback": "1.5% (Standard) to 3% (Private) cashback; KAST Points on higher tiers",
+    "fees": "Standard: $0 card fee, $40 physical delivery; FX 0.5-1.75% (shown in app); Premium $1,000/yr, Private $10,000/yr",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "available",
+      "RS": "not_available",
+      "USCA": "unknown"
+    },
+    "url": "https://www.kast.xyz/en/crypto-cards",
+    "sources": [
+      "https://www.kast.xyz/en/crypto-cards",
+      "https://concierge.kast.xyz/hc/en-us/articles/9494849254671-Which-countries-are-restricted-on-KAST",
+      "https://concierge.kast.xyz/hc/en-us/articles/9850062738703-What-Are-the-Fees-and-Conditions-for-KAST-Cards-and-Accounts",
+      "https://www.kast.xyz/blog/is-your-money-safe-on-kast-heres-what-actually-protects-it",
+      "https://www.kast.xyz/legal/ra-account-opening-privacy-notice"
+    ],
+    "notes": "Serbia is under 'Restricted Residents Only' (addresses not accepted). Concierge help pages returned 403 to direct fetch; country facts taken from search excerpts of those official pages. KAST says it does not custody funds itself but uses licensed partners (treated as custodial). CA: Official pages read give no US state list; KAST GLBA disclosure has a California-resident privacy section but never states state availability; only aggregator claims of 'all states' (not accepted). Concierge page 403s.",
+    "brand": [
+      "#0b0b0f",
+      "#c6ff3d"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "ether-fi-cash",
+    "name": "ether.fi Cash",
+    "issuer": "ether.fi (Cash cardholder agreement, Ltd. International)",
+    "network": "Visa",
+    "type": "credit",
+    "custody": "self",
+    "kyc": "full",
+    "chains": [
+      "Ethereum",
+      "Polygon",
+      "Optimism",
+      "Arbitrum",
+      "Scroll"
+    ],
+    "solana": false,
+    "cashback": "Up to 3% in ETHFI (Core: 3% on first $2,000/mo)",
+    "fees": "Virtual $10 (VIP $0), physical $50-$100 (VIP $0); FX base ~1% plus 0-0.5% margin by tier; ATM 2%",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "available",
+      "RS": "not_available",
+      "USCA": "available"
+    },
+    "url": "https://www.ether.fi/cash-crypto-cashback-campaign-best-crypto-card",
+    "sources": [
+      "https://help.ether.fi/en/articles/758780-in-which-countries-is-the-cash-card-available",
+      "https://help.ether.fi/en/articles/303623-what-are-the-transaction-limits-and-fees-for-personal-cash-credit-cards",
+      "https://help.ether.fi/en/articles/262374-how-does-cashback-work",
+      "https://etherfi.gitbook.io/etherfi/legal/ether.fi-legal/ether.fi-cash-cardholder-agreement-ltd.-international"
+    ],
+    "notes": "US only in listed states (about 31 incl. DC, e.g. CA, NY, TX, FL). Serbia not listed; page says unlisted jurisdictions cannot apply. Help center describes it as a credit card (spend against collateral); network and Solana not confirmed on the pages read (Visa from public product knowledge, Solana not listed in agreement). CA: Issuer's supported-states list (about 31 incl. DC) includes California.",
+    "brand": [
+      "#0a0a1a",
+      "#6b5bff"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "gnosis-pay",
+    "name": "Gnosis Pay",
+    "issuer": "Monavate Limited (under licence of Visa Europe)",
+    "network": "Visa",
+    "type": "debit",
+    "custody": "self",
+    "kyc": "full",
+    "chains": [
+      "Gnosis Chain"
+    ],
+    "solana": false,
+    "cashback": "Up to 5% in GNO (per Gnosis Pay partner/tier info)",
+    "fees": "No Gnosis Pay card fee stated on pages read; Visa FX rate",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "waitlist",
+      "RS": "not_available",
+      "USCA": "waitlist"
+    },
+    "url": "https://gnosispay.com/card",
+    "sources": [
+      "https://gnosispay.com/card",
+      "https://docs.gnosispay.com/onboarding-flow",
+      "https://gnosispay.com/"
+    ],
+    "notes": "Eligibility is by legal residency in listed countries (Europe incl. UK, and several Latin American countries); US listed as 'coming soon' with waitlist. The help-center eligibility article now 404s (legacy help site), so this rests on a search excerpt of it; Serbia was not in the listed countries. Funds sit in a Safe smart account; cashback figure not confirmed on a page read. CA: US is 'coming soon'/waitlist nationwide per issuer, not state-specific; applies to CA residents too.",
+    "brand": [
+      "#0b1f1a",
+      "#3fdc9a"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "redotpay",
+    "name": "RedotPay",
+    "issuer": "RedotPay",
+    "network": "Visa",
+    "type": "prepaid",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [
+      "Solana",
+      "Polygon",
+      "Arbitrum",
+      "Ethereum",
+      "TRON"
+    ],
+    "solana": true,
+    "cashback": "Pro: 3% on Apple/Google Pay purchases (max $18/mo)",
+    "fees": "Virtual card $10, physical $100 (waived once on Pro plans); FX/ATM fees not verified",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://www.redotpay.com/card",
+    "sources": [
+      "https://helpcenter.redotpay.com/en/articles/14252906-location-based-access-restrictions",
+      "https://helpcenter.redotpay.com/en/articles/14255319-card-delivery-restrictions",
+      "https://helpcenter.redotpay.com/en/articles/10566200-are-there-any-fees-for-getting-a-card",
+      "https://www.redotpay.com"
+    ],
+    "notes": "US and Serbia are on the unavailable-country list; UK not on it (inferred available since not restricted). Chains beyond Solana are indicative; the home page names Solana, Polygon and Arbitrum as partners. CA: US is on the issuer's unavailable-country list (whole US).",
+    "brand": [
+      "#e8202a",
+      "#1a1a1a"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "bitget-card",
+    "name": "Bitget Card (Bitget Wallet Card)",
+    "issuer": "Bitget Wallet",
+    "network": null,
+    "type": "debit",
+    "custody": "self",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": "Up to 3% assetback (2% base) in BTC, gold, US stocks or USDC",
+    "fees": "$0 opening and annual fee; no markup stated",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://web3.bitget.com/card",
+    "sources": [
+      "https://web3.bitget.com/card",
+      "https://www.bitget.com/support/articles/12560603890043",
+      "https://www.bitget.com/support/articles/12560603889935",
+      "https://www.bitget.com/support/articles/12560603840909"
+    ],
+    "notes": "New applications moved to Bitget Wallet from 1 Aug 2026. EEA and UK listed; US and Serbia not listed. Physical cards only in nine APAC countries, so UK is virtual only. Network 'Visa or Mastercard' not pinned down on pages read (left null); chains and Solana not confirmed. CA: US not on issuer's eligible list (whole US).",
+    "brand": [
+      "#0a1b2e",
+      "#19e3ff"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "bybit-card",
+    "name": "Bybit Card",
+    "issuer": "Bybit",
+    "network": "Mastercard",
+    "type": "prepaid",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": "Up to 10% in crypto (BIT) depending on merchant category",
+    "fees": "No monthly fee; 0% FX; ATM 2% (min $1); virtual free, shipping may apply",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://www.bybit.com/en/cards/",
+    "sources": [
+      "https://www.bybit.com/en/wiki/article/bybit-card-countries-availability-2026/",
+      "https://www.bybit.com/en/help-center/article/FAQ-Bybit-Card-General-Inquiries"
+    ],
+    "notes": "UK subject to FCA conditions; EEA mainly. US named as unsupported; Serbia not on list and page says unlisted countries unsupported. Funded from Bybit exchange balance; Solana support not confirmed on pages read. Fee and cashback figures come from Bybit's own wiki article (verified June 2026). CA: US named as unsupported by issuer (whole US).",
+    "brand": [
+      "#15161a",
+      "#f7a600"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "crypto-com-visa",
+    "name": "Crypto.com Visa Card",
+    "issuer": "Crypto.com (regional issuers)",
+    "network": "Visa",
+    "type": "prepaid",
+    "custody": "custodial",
+    "kyc": "full",
+    "chains": [],
+    "solana": false,
+    "cashback": "0% to 4.5% in CRO depending on tier (higher tiers need CRO lockup)",
+    "fees": "Free base tier; Ruby Steel $4.99/mo or CRO lockup; regional fee articles not read in detail",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "available",
+      "RS": "not_available",
+      "USCA": "available"
+    },
+    "url": "https://crypto.com/en/cards",
+    "sources": [
+      "https://crypto.com/en/cards",
+      "https://help.crypto.com/en/articles/3966346-crypto-com-prepaid-visa-cards-are-available-in-which-european-countries",
+      "https://help.crypto.com/en/articles/1341655-which-are-the-available-markets",
+      "https://help.crypto.com/en/articles/4597450-restriction-of-cro-rewards-program-and-restricted-markets-for-crypto-com-prepaid-card",
+      "https://help.crypto.com/en/collections/3374054-crypto-com-card-fees-limits",
+      "https://help.crypto.com/en/articles/2692288-in-which-u-s-states-the-crypto-com-app-is-available",
+      "https://help.crypto.com/en/articles/11502058-applying-for-a-crypto-com-visa-signature-credit-card"
+    ],
+    "notes": "UK confirmed on European list; US listed on card page (US-specific card variant, state restrictions may apply, e.g. NY). Serbia is not on the European list and appears as a restricted market in the card restriction table. Solana top-up support not confirmed on pages read. CA: Issuer help page lists California among the 49 US states where the Crypto.com App is available; the Visa Signature credit card is available wherever the app is; only NY is excluded.",
+    "brand": [
+      "#002d74",
+      "#1199fa"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "metamask-card",
+    "name": "MetaMask Card",
+    "issuer": "Monovate (service provider Crypto Life)",
+    "network": "Mastercard",
+    "type": "debit",
+    "custody": "self",
+    "kyc": "full",
+    "chains": [
+      "Linea",
+      "Solana",
+      "Base",
+      "Monad"
+    ],
+    "solana": true,
+    "cashback": "1% in mUSD (Metal card 3% on first $10,000/yr)",
+    "fees": "No annual fee on Virtual card; no extra FX fee beyond Mastercard rate",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://support.metamask.io/trade/metamask-card/what-is-metamask-card/",
+    "sources": [
+      "https://support.metamask.io/trade/metamask-card/what-is-metamask-card/",
+      "https://support.metamask.io/trade/metamask-card/getting-started-with-card/",
+      "https://support.metamask.io/trade/metamask-card/card-faq/"
+    ],
+    "notes": "US new sign-ups are 'temporarily paused' (existing holders unaffected). UK is on the eligible sign-up list; Serbia is not. Metal card is US-only; UK is virtual (physical not confirmed). CA: US sign-ups temporarily paused by issuer (US-wide), so not available to CA residents now.",
+    "brand": [
+      "#1c1410",
+      "#f6851b"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "solflare-card",
+    "name": "Solflare Card",
+    "issuer": "Solflare (Mastercard; new issuing partner pending)",
+    "network": "Mastercard",
+    "type": "debit",
+    "custody": "self",
+    "kyc": "light",
+    "chains": [
+      "Solana"
+    ],
+    "solana": true,
+    "cashback": "Cash back planned for August return (rate not stated)",
+    "fees": "Marketed as no top-ups, no conversions, no hidden fees",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "not_available",
+      "US": "not_available",
+      "RS": "not_available",
+      "USCA": "not_available"
+    },
+    "url": "https://www.solflare.com/crypto-card/",
+    "sources": [
+      "https://www.solflare.com/crypto-card/",
+      "https://www.solflare.com/blog/cards-service-pause/",
+      "https://www.solflare.com/crypto-card/faq/"
+    ],
+    "notes": "Exists, but the official page says cards are paused while moving to a new issuing partner. Eligibility: EEA, UK and others case by case via the app, so GB likely but unconfirmed. Marked unknown for all three. KYC described as 'instant verification' (treated as light). Second pass (2026-10-07): official blog (28 Jul 2026) and site banner say cards are paused after issuer Kulipa ceased operating; existing cards stopped working and no relaunch was visible on the official site, so GB, US and RS are marked not_available for now. Solflare says coverage 'stays broadly the same, including Serbia and Croatia' and the FAQ lists EEA, UK 'and other countries, subject to approval', so GB and RS may return on relaunch; re-check then. CA: Card service paused for all regions after issuer ceased operating.",
+    "brand": [
+      "#1a1200",
+      "#ffef46"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "tria-card",
+    "name": "Tria Card",
+    "issuer": "Nimbus, LLC (Visa licence)",
+    "network": "Visa",
+    "type": "debit",
+    "custody": "self",
+    "kyc": "full",
+    "chains": [
+      "Solana"
+    ],
+    "solana": true,
+    "cashback": "Up to 6% cashback (per Tria materials)",
+    "fees": "Issuance $25-$250, annual fee same; FX up to 3%; ATM up to $2 + 3%",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "unknown",
+      "US": "not_available",
+      "RS": "unknown",
+      "USCA": "not_available"
+    },
+    "url": "https://www.tria.so/",
+    "sources": [
+      "https://www.tria.so/",
+      "https://docs.tria.so/card-terms-international",
+      "https://help.tria.so/en/articles/14056678-how-to-get-a-tria-card",
+      "https://docs.tria.so/prohibitions-list",
+      "https://blogs.tria.so/en/best-crypto-card-2026"
+    ],
+    "notes": "International card terms require attesting you are not a US citizen, so US is not available. Tria says 150+ countries and unsupported countries are rejected at KYC, but UK and Serbia are not confirmed by name on official pages. Tiers: Lite (virtual), Pro (plastic), Max (metal). CA: International card terms require not being a US citizen; no US offering.",
+    "brand": [
+      "#0d0a1f",
+      "#8b5cff"
+    ],
+    "checkedAt": "2026-10-07"
+  },
+  {
+    "id": "avici-card",
+    "name": "Avici Card",
+    "issuer": "Third National (issuer for Avici)",
+    "network": "Visa",
+    "type": "credit",
+    "custody": "self",
+    "kyc": "full",
+    "chains": [
+      "Solana"
+    ],
+    "solana": true,
+    "cashback": "Not stated on official pages read",
+    "fees": "Platinum $15 one-time; Signature $30 first year then $20/yr; FX currently 1% (cap 3%); ATM $1 + 0.65%",
+    "physical": true,
+    "virtual": true,
+    "countries": {
+      "GB": "unknown",
+      "US": "available",
+      "RS": "unknown",
+      "USCA": "available"
+    },
+    "url": "https://www.avici.money",
+    "sources": [
+      "https://www.avici.money",
+      "https://docs.avici.money/getting-started/secured-credit-cards/regions-and-prohibitions-for-avici-card",
+      "https://docs.avici.money/getting-started/secured-credit-cards/faqs",
+      "https://docs.avici.money/getting-started/intro"
+    ],
+    "notes": "Secured credit card (collateral in a self-custodial loan contract). US available in about 30 states only. UK and Serbia are not named on the regions page, which says unlisted jurisdictions may be restricted. Solana deposits are auto-bridged; other chains not confirmed. CA: Issuer regions page lists California among the 30 supported US states.",
+    "brand": [
+      "#05070d",
+      "#14f195"
+    ],
+    "checkedAt": "2026-10-07"
+  }
+]

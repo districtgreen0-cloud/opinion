@@ -1,0 +1,23 @@
+{
+  "name": "opinion",
+  "private": true,
+  "description": "OPINION: the dark social map. Speak only where you stand.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "bash scripts/setup.sh",
+    "dev": "npm --prefix web run dev",
+    "dev:api": "npm --prefix worker run dev",
+    "dev:live": "bash scripts/dev-live.sh",
+    "typecheck": "cd web && npx tsc -b && cd ../worker && npx tsc --noEmit",
+    "build": "VITE_API_URL= npm --prefix web run build",
+    "build:demo": "npm --prefix web run build",
+    "preview": "npm --prefix web run preview -- --port 4701",
+    "db:create": "cd worker && npx wrangler d1 create opinion-db",
+    "db:migrate": "npm --prefix worker run migrate:remote",
+    "deploy": "npm run typecheck && npm run build && npm --prefix worker run deploy",
+    "deploy:demo": "npm run build:demo && cd worker && npx wrangler pages deploy ../web/dist --project-name opinion-demo --branch main",
+    "share": "npm --prefix web run share"
+  }
+}
