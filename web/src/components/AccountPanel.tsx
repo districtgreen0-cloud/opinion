@@ -76,7 +76,7 @@ export default function AccountPanel() {
 
       <div className="mt-3 rounded-2xl border hairline p-4">
         <div className="text-[14px] text-white">Wallet</div>
-        <div className="num mt-1 text-[12px] text-fog">{wallet ? `${short(wallet.address)} · ${wallet.kind === 'phantom' ? 'Phantom' : 'demo wallet'}` : 'Not connected — use Sign in / Sign up'}</div>
+        <div className="num mt-1 text-[12px] text-fog">{wallet ? `${short(wallet.address)} · ${wallet.kind === 'solflare' ? 'Solflare' : 'demo wallet'}` : 'Not connected — use Sign in / Sign up'}</div>
       </div>
 
       <div className="mt-3">

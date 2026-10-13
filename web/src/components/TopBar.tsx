@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useStore, type Lighting } from '../store'
 import { CITIES } from '../data/mock'
-import { disconnectWallet } from '../lib/wallet'
+import { disconnectWallet, SOLFLARE_ICON } from '../lib/wallet'
 import { short } from '../lib/format'
 import { Avatar, Ticker } from './bits'
 import Logo from './Logo'
@@ -169,7 +169,7 @@ function WalletPill() {
       className="glass group flex h-11 items-center gap-2 rounded-2xl px-3.5 text-[12px]"
       title="Disconnect"
     >
-      <span className="h-2 w-2 rounded-full bg-mint shadow-[0_0_8px_#3dffa8]" />
+      {wallet.kind === 'solflare' ? <img src={SOLFLARE_ICON} alt="Solflare" className="h-[18px] w-[18px] rounded-[5px]" /> : <span className="h-2 w-2 rounded-full bg-mint shadow-[0_0_8px_#3dffa8]" />}
       <span className="num text-white group-hover:hidden">{short(wallet.address)}</span>
       <span className="hidden text-fog group-hover:inline">Disconnect</span>
       {wallet.kind === 'mock' && <span className="rounded-md bg-white/5 px-1.5 py-0.5 text-[9px] tracking-widest text-fog uppercase">demo</span>}

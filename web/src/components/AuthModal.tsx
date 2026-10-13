@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useStore } from '../store'
 import { AUTH_DEMO, EMAIL_RE, emailStart, emailVerify, googleStart, googleUrl } from '../lib/auth'
-import { connectWallet, phantom } from '../lib/wallet'
+import { connectWallet, openInSolflareApp, solflare, SOLFLARE_DOWNLOAD, SOLFLARE_ICON } from '../lib/wallet'
 import Logo from './Logo'
 import { reduced } from './bits'
 
@@ -25,16 +25,6 @@ function GoogleG() {
       <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
       <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
       <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
-    </svg>
-  )
-}
-
-function WalletGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <rect x="3" y="6" width="18" height="13" rx="3" />
-      <path d="M3 10h18M16.5 14.5h.01" />
-      <path d="M7 6V5a2 2 0 0 1 2-2h8" />
     </svg>
   )
 }
@@ -119,18 +109,15 @@ export default function AuthModal() {
 
   const wallet = async (demo = false) => {
     setErr(null)
-    // phones: Safari has no wallet extension → open OPINION inside Phantom's in-app browser
-    if (!demo && !phantom() && IS_MOBILE) {
-      location.href = `https://phantom.app/ul/browse/${encodeURIComponent(location.href)}?ref=${encodeURIComponent(location.origin)}`
-      return
-    }
-    if (!demo && !phantom()) return setStep({ k: 'wallet' })
+    // phones: Safari has no wallet extension → open OPINION inside the Solflare app's browser
+    if (!demo && !solflare() && IS_MOBILE) return openInSolflareApp()
+    if (!demo && !solflare()) return setStep({ k: 'wallet' })
     setBusy(true)
     try {
-      const w = await connectWallet()
+      const w = await connectWallet({ demo })
       setWallet(w)
       setOpen(false)
-      toast(w.kind === 'phantom' ? 'Wallet connected · welcome to OPINION' : 'Demo wallet connected', 'mint')
+      toast(w.kind === 'solflare' ? 'Solflare connected · welcome to OPINION' : 'Demo wallet connected', 'mint')
     } catch {
       setErr('Connection cancelled in the wallet.')
     } finally {
@@ -182,9 +169,13 @@ export default function AuthModal() {
             </div>
             <h2 className="font-display mt-4 text-[24px] leading-tight font-semibold text-white">{mode === 'in' ? 'Welcome back.' : 'Join the map.'}</h2>
             <p className="mt-1 text-[13px] text-white/55">{mode === 'in' ? 'Pick how you joined. No passwords.' : 'Post, earn $ON and chat. Choose one, no passwords.'}</p>
-            <button onClick={() => wallet()} disabled={busy} className="btn-ghost mt-5 flex w-full items-center justify-center gap-2.5 text-[14px]">
-              <WalletGlyph /> {phantom() ? 'Connect Phantom' : 'Connect wallet'}
-              <span className="rounded-md bg-gradient-to-r from-[#9945ff] to-[#14f195] px-1.5 py-px font-mono text-[9px] font-bold tracking-[0.12em] text-black">SOL</span>
+            <button
+              onClick={() => wallet()}
+              disabled={busy}
+              className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-[14px] bg-[#ffef46] px-4 py-2.5 text-[14px] font-semibold text-[#02050a] shadow-[0_8px_26px_rgba(255,239,70,.22)] transition-[filter,transform] hover:-translate-y-px hover:brightness-105 disabled:opacity-60"
+            >
+              <img src={SOLFLARE_ICON} alt="" className="h-[22px] w-[22px] rounded-[6px] ring-1 ring-black/15" />
+              {busy ? 'Connecting…' : solflare() ? 'Connect Solflare' : IS_MOBILE ? 'Open in Solflare' : 'Connect with Solflare'}
             </button>
             <button onClick={google} className="btn-ghost mt-2 flex w-full items-center justify-center gap-2.5 text-[14px]">
               <GoogleG /> {mode === 'in' ? 'Sign in with Google' : 'Sign up with Google'}
@@ -249,20 +240,13 @@ export default function AuthModal() {
         {step.k === 'wallet' && (
           <>
             <h2 className="font-display mt-5 flex items-center gap-2 text-[22px] font-semibold text-white">
-              <WalletGlyph /> Connect a wallet
+              <img src={SOLFLARE_ICON} alt="" className="h-6 w-6 rounded-[7px]" /> Connect Solflare
             </h2>
-            <p className="mt-1 text-[13px] text-white/55">No Solana wallet found in this browser. Install one, then come back. Or try OPINION with a demo wallet.</p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {[
-                ['Phantom', 'https://phantom.com/download'],
-                ['Solflare', 'https://solflare.com/download'],
-                ['Backpack', 'https://backpack.app/download'],
-              ].map(([n, u]) => (
-                <a key={n} href={u} target="_blank" rel="noreferrer" className="btn-ghost !px-2 text-center text-[12.5px]">
-                  {n} ↗
-                </a>
-              ))}
-            </div>
+            <p className="mt-1 text-[13px] text-white/55">Solflare isn't installed in this browser. Add the extension (or open OPINION in the Solflare app), then come back. Or try it with a demo wallet.</p>
+            <a href={SOLFLARE_DOWNLOAD} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center gap-2.5 rounded-[14px] bg-[#ffef46] px-4 py-2.5 text-[14px] font-semibold text-[#02050a] hover:brightness-105">
+              <img src={SOLFLARE_ICON} alt="" className="h-[22px] w-[22px] rounded-[6px] ring-1 ring-black/15" />
+              Get Solflare ↗
+            </a>
             <button className="btn-ghost mt-2 w-full text-[14px]" disabled={busy} onClick={() => wallet(true)}>
               Use a demo wallet
             </button>

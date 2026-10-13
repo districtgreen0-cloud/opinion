@@ -77,7 +77,7 @@ type State = {
   goWorld: () => void
 
   me: { handle: string; avatar: string; vibe: Vibe; ghost: boolean }
-  wallet: { address: string; kind: 'phantom' | 'mock' } | null
+  wallet: { address: string; kind: 'solflare' | 'mock' } | null
 
   pos: Pos | null
   geoStatus: 'idle' | 'asking' | 'granted' | 'denied' | 'unavailable'
