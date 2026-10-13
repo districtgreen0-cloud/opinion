@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>OPINION — The human oracle for the real world</title>
+  <meta name="description" content="OPINION is the live social map where people become the world's sensor network: location-proofed, real-time geodata for AI, robots and cities, with local jobs paid peer-to-peer in USDC escrow." />
+  <meta name="theme-color" content="#000000" />
+  <link rel="canonical" href="https://useopinion.io/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="OPINION — The human oracle for the real world" />
+  <meta property="og:description" content="Share your own, help the world, make friends." />
+  <meta property="og:image" content="https://useopinion.io/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Cpath d='M16 4l10.4 6v12L16 28 5.6 22V10z' fill='none' stroke='%23fff' stroke-width='2.4'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    document.documentElement.classList.add('js')
+    try { if (sessionStorage.getItem('op-seen')) document.documentElement.classList.add('seen') } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <svg class="sol-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="sol" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9945FF" /><stop offset="1" stop-color="#14F195" /></linearGradient>
+      <linearGradient id="solRing" gradientUnits="userSpaceOnUse" x1="-480" y1="-480" x2="480" y2="480"><stop offset="0" stop-color="#9945FF" /><stop offset=".5" stop-color="#7A6BFF" /><stop offset="1" stop-color="#14F195" /></linearGradient>
+    </defs>
+  </svg>
+  <a class="skip" href="#manifesto">Skip to content</a>
+
+  <!-- 0 · PRELOADER -->
+  <div class="preloader" aria-hidden="true">
+    <div class="pl-count mono">000</div>
+    <div class="pl-line"><i></i></div>
+    <div class="pl-cap mono">// SYNCING GROUND TRUTH //</div>
+  </div>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <main>
+    <!-- 1+2 · STAGE: hero → dive → your hex -->
+    <section class="stage" id="top" aria-label="OPINION">
+      <canvas class="globe-canvas" aria-hidden="true"></canvas>
+      <svg class="hud-rings" viewBox="-500 -500 1000 1000" aria-hidden="true">
+        <g class="spin s1"><g class="ring r1"><circle class="draw" r="330" /><circle r="330" class="ticks" /></g></g>
+        <g class="spin s2"><g class="ring r2"><circle r="392" class="dash" /><path d="M -392 0 A 392 392 0 0 1 -277 -277" class="arc draw" /><path d="M 392 0 A 392 392 0 0 1 277 277" class="arc draw" /></g></g>
+        <g class="spin s4"><g class="ring r4"><circle class="draw faint" r="420" /><line class="draw" x1="0.0" y1="-404.0" x2="0.0" y2="-420.0" /><line class="draw" x1="71.5" y1="-405.7" x2="72.9" y2="-413.6" /><line class="draw" x1="140.9" y1="-387.2" x2="143.6" y2="-394.7" /><line class="draw" x1="202.0" y1="-349.9" x2="210.0" y2="-363.7" /><line class="draw" x1="264.8" y1="-315.6" x2="270.0" y2="-321.7" /><line class="draw" x1="315.6" y1="-264.8" x2="321.7" y2="-270.0" /><line class="draw" x1="349.9" y1="-202.0" x2="363.7" y2="-210.0" /><line class="draw" x1="387.2" y1="-140.9" x2="394.7" y2="-143.6" /><line class="draw" x1="405.7" y1="-71.5" x2="413.6" y2="-72.9" /><line class="draw" x1="404.0" y1="0.0" x2="420.0" y2="0.0" /><line class="draw" x1="405.7" y1="71.5" x2="413.6" y2="72.9" /><line class="draw" x1="387.2" y1="140.9" x2="394.7" y2="143.6" /><line class="draw" x1="349.9" y1="202.0" x2="363.7" y2="210.0" /><line class="draw" x1="315.6" y1="264.8" x2="321.7" y2="270.0" /><line class="draw" x1="264.8" y1="315.6" x2="270.0" y2="321.7" /><line class="draw" x1="202.0" y1="349.9" x2="210.0" y2="363.7" /><line class="draw" x1="140.9" y1="387.2" x2="143.6" y2="394.7" /><line class="draw" x1="71.5" y1="405.7" x2="72.9" y2="413.6" /><line class="draw" x1="0.0" y1="404.0" x2="0.0" y2="420.0" /><line class="draw" x1="-71.5" y1="405.7" x2="-72.9" y2="413.6" /><line class="draw" x1="-140.9" y1="387.2" x2="-143.6" y2="394.7" /><line class="draw" x1="-202.0" y1="349.9" x2="-210.0" y2="363.7" /><line class="draw" x1="-264.8" y1="315.6" x2="-270.0" y2="321.7" /><line class="draw" x1="-315.6" y1="264.8" x2="-321.7" y2="270.0" /><line class="draw" x1="-349.9" y1="202.0" x2="-363.7" y2="210.0" /><line class="draw" x1="-387.2" y1="140.9" x2="-394.7" y2="143.6" /><line class="draw" x1="-405.7" y1="71.5" x2="-413.6" y2="72.9" /><line class="draw" x1="-404.0" y1="0.0" x2="-420.0" y2="0.0" /><line class="draw" x1="-405.7" y1="-71.5" x2="-413.6" y2="-72.9" /><line class="draw" x1="-387.2" y1="-140.9" x2="-394.7" y2="-143.6" /><line class="draw" x1="-349.9" y1="-202.0" x2="-363.7" y2="-210.0" /><line class="draw" x1="-315.6" y1="-264.8" x2="-321.7" y2="-270.0" /><line class="draw" x1="-264.8" y1="-315.6" x2="-270.0" y2="-321.7" /><line class="draw" x1="-202.0" y1="-349.9" x2="-210.0" y2="-363.7" /><line class="draw" x1="-140.9" y1="-387.2" x2="-143.6" y2="-394.7" /><line class="draw" x1="-71.5" y1="-405.7" x2="-72.9" y2="-413.6" /><text class="cl-card" x="0.0" y="-440.0" transform="rotate(0 0.0 -440.0)">N</text><text class="cl-deg" x="220.0" y="-381.1" transform="rotate(30 220.0 -381.1)">030</text><text class="cl-deg" x="381.1" y="-220.0" transform="rotate(60 381.1 -220.0)">060</text><text class="cl-card" x="440.0" y="0.0" transform="rotate(90 440.0 0.0)">E</text><text class="cl-deg" x="381.1" y="220.0" transform="rotate(120 381.1 220.0)">120</text><text class="cl-deg" x="220.0" y="381.1" transform="rotate(150 220.0 381.1)">150</text><text class="cl-card" x="0.0" y="440.0" transform="rotate(180 0.0 440.0)">S</text><text class="cl-deg" x="-220.0" y="381.1" transform="rotate(210 -220.0 381.1)">210</text><text class="cl-deg" x="-381.1" y="220.0" transform="rotate(240 -381.1 220.0)">240</text><text class="cl-card" x="-440.0" y="0.0" transform="rotate(270 -440.0 0.0)">W</text><text class="cl-deg" x="-381.1" y="-220.0" transform="rotate(300 -381.1 -220.0)">300</text><text class="cl-deg" x="-220.0" y="-381.1" transform="rotate(330 -220.0 -381.1)">330</text></g></g>
+        <g class="spin s3"><g class="ring r3"><circle r="460" class="ticks fine" /><circle class="draw faint" r="472" /><path d="M 460 0 A 460 460 0 0 1 325 325" class="arc draw" /><path d="M -460 0 A 460 460 0 0 1 -325 -325" class="arc draw" /></g></g>
+        <g class="crosshair"><line class="draw" x1="-490" y1="0" x2="-440" y2="0" /><line class="draw" x1="440" y1="0" x2="490" y2="0" /><line class="draw" x1="0" y1="-490" x2="0" y2="-440" /><line class="draw" x1="0" y1="440" x2="0" y2="490" /></g>
+      </svg>
+      <div class="hud-coords mono" aria-hidden="true">
+        <span class="c-tl">LAT 51.5101<br />LON −0.1167</span>
+        <span class="c-tr">H3 · RES 10<br />~15,000 M²</span>
+        <span class="c-bl">// SPATIAL //</span>
+        <span class="c-br">HEX <b>8a195da4…</b></span>
+      </div>
+
+      <div class="hero-copy">
+        <p class="kicker mono hero-kicker">// HUMAN GEODATA · LIVE FROM 5 CITIES //</p>
+        <h1 class="wordmark" aria-label="OPINION"><span class="wm-a">OPINI</span><span class="wm-on">ON</span></h1>
+        <p class="hero-line">The live social map where people become the world's sensor network.</p>
+        <p class="hero-sub mono">The geolocation data pipeline · from humans to robots</p>
+      </div>
+
+      <div class="dive-hex">
+        <svg class="hexfield" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+        <div class="dh-copy">
+          <p class="dh-tag mono">// YOU ARE HERE · LONDON · HEX 8a195da49b5ffff · RES 10</p>
+          <p class="dh-line">One hex. One voice. One moment.</p>
+        </div>
+      </div>
+      <div class="scroll-cue mono" aria-hidden="true">SCROLL <i></i></div>
+    </section>
+
+    <!-- 3 · MANIFESTO -->
+    <section class="manifesto" id="manifesto">
+      <div class="manifesto-inner">
+        <p class="kicker mono">// 01 · THE ERA OF AI //</p>
+        <h2 class="m-lines">
+          <span class="m-line">AI has read the entire internet.</span>
+          <span class="m-line">It has never stood on your street.</span>
+          <span class="m-line">OPINION is the pipeline between them.</span>
+        </h2>
+        <div class="m-body">
+          <p>Robots, autonomous fleets and billions of connected devices are moving into the street. They all need one thing no model can scrape: what is true here, right now.</p>
+          <p>OPINION is the geolocation data pipeline from humans to robots. People post where they stand. Every signal is proven by place, signed and streamed. It changes how people interact (you meet who is actually there) and how they transact (you pay them in seconds, in USDC). Machines get ground truth.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · HOW IT WORKS -->
+    <section class="how" id="how" aria-label="How it works">
+      <div class="how-track">
+        <article class="how-panel how-intro">
+          <p class="kicker mono">// 02 · PROOF OF PLACE //</p>
+          <h2>You can only speak where you stand.</h2>
+          <p>The planet is cut into ~15,000 m² hexagons (H3 resolution 10). Every post is pinned to the hex you are physically in, checked on your device and again on the server, then signed and time-stamped. No bots in a basement, no reviews from people who were never there. One hex, one voice, one moment.</p>
+        </article>
+        <article class="how-panel">
+          <span class="how-n">01</span>
+          <svg class="how-svg" viewBox="0 0 200 200" aria-hidden="true"><polygon class="d" points="100,22 168,61 168,139 100,178 32,139 32,61" /><polygon class="d faint" points="100,48 145,74 145,126 100,152 55,126 55,74" /><circle class="dot" cx="100" cy="100" r="7" /><circle class="d" cx="100" cy="100" r="18" /></svg>
+          <h3>Stand</h3>
+          <p>Your phone resolves the hex under your feet. No hex, no voice: you can't post about a place you are not in.</p>
+        </article>
+        <article class="how-panel">
+          <span class="how-n">02</span>
+          <svg class="how-svg" viewBox="0 0 200 200" aria-hidden="true"><polygon class="d faint" points="100,60 150,89 150,147 100,176 50,147 50,89" /><path class="d" d="M52 24 h96 a10 10 0 0 1 10 10 v34 a10 10 0 0 1 -10 10 h-38 l-10 14 l-10 -14 h-38 a10 10 0 0 1 -10 -10 v-34 a10 10 0 0 1 10 -10z" /><line class="d" x1="66" y1="44" x2="134" y2="44" /><line class="d" x1="66" y1="58" x2="112" y2="58" /></svg>
+          <h3>Speak</h3>
+          <p>A note, a photo, a topic, an event or a paid job. "Queue is 20 min." "Street closed." "Doors just opened." Short, fast, and fading with time, like the moment itself.</p>
+        </article>
+        <article class="how-panel">
+          <span class="how-n">03</span>
+          <svg class="how-svg" viewBox="0 0 200 200" aria-hidden="true"><circle class="d" cx="100" cy="92" r="58" /><path class="d" d="M72 92 l20 20 l38 -40" /><path class="d faint" d="M40 172 c20 -14 30 6 46 -6 s26 -16 40 0 s24 8 34 -4" /></svg>
+          <h3>Verify</h3>
+          <p>Device check plus server check. The record is signed (ed25519) and time-stamped. Reputation weighs it against its neighbours.</p>
+        </article>
+        <article class="how-panel">
+          <span class="how-n">04</span>
+          <svg class="how-svg" viewBox="0 0 200 200" aria-hidden="true"><rect class="d" x="24" y="40" width="64" height="16" /><rect class="d" x="24" y="72" width="64" height="16" /><rect class="d" x="24" y="104" width="64" height="16" /><rect class="d" x="24" y="136" width="64" height="16" /><path class="d" d="M92 48 C 140 48 130 96 180 96" /><path class="d" d="M92 80 C 130 80 140 96 180 96" /><path class="d" d="M92 112 C 130 112 140 96 180 96" /><path class="d" d="M92 144 C 140 144 130 96 180 96" /></svg>
+          <h3>Stream</h3>
+          <p>Thousands of verified moments flow into live feeds per hex, per city, per topic. That stream is the oracle.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 5 · USDC ESCROW (the money layer) -->
+    <section class="escrow" id="escrow" aria-label="USDC escrow">
+      <div class="escrow-inner">
+        <header class="escrow-head">
+          <p class="kicker mono">// 03 · JOBS · P2P USDC ESCROW //</p>
+          <h2>Everyone is chasing work. We put it on the map. <span class="dim">Paid in USDC. Held by code. Released on delivery.</span></h2>
+        </header>
+
+        <div class="escrow-grid">
+          <div class="escrow-diagram">
+            <div class="escrow-state mono" aria-live="off"><span class="es-label">STATE</span><b class="es-value">OPEN</b><span class="es-amt">25.00 USDC</span></div>
+            <svg class="es-svg" viewBox="0 0 1000 440" role="img" aria-label="Escrow flow: the poster funds a program-owned vault, a nearby worker takes the job and delivers, then the vault releases USDC to the worker. Cancel before the job is taken refunds the poster.">
+              <defs>
+                <pattern id="hexgrid" width="34" height="58.9" patternUnits="userSpaceOnUse" patternTransform="scale(1)"><path d="M17 0 L34 9.8 L34 29.4 L17 39.3 L0 29.4 L0 9.8 Z M17 39.3 L17 58.9" fill="none" stroke="rgba(255,255,255,.05)" /></pattern>
+              </defs>
+              <rect width="1000" height="440" fill="url(#hexgrid)" />
+              <!-- rails -->
+              <path id="p-fund" class="rail" d="M168 220 C 250 90, 360 90, 420 170" />
+              <path id="p-take" class="rail dash" d="M832 250 C 740 360, 640 360, 580 280" />
+              <path id="p-deliver" class="rail dash" d="M832 200 C 760 150, 660 140, 590 180" />
+              <path id="p-release" class="rail" d="M580 170 C 640 90, 750 90, 832 220" />
+              <path id="p-refund" class="rail faint dash" d="M420 280 C 360 360, 250 360, 168 250" />
+              <!-- nodes -->
+              <g class="node poster" transform="translate(120 230)"><circle r="48" /><circle r="56" class="halo" /><text y="5" class="nt">POSTER</text><text y="86" class="nl">WALLET · PAYS</text></g>
+              <g class="node worker" transform="translate(880 230)"><circle r="48" /><circle r="56" class="halo" /><text y="5" class="nt">WORKER</text><text y="86" class="nl">IN THE SAME HEX</text></g>
+              <g class="vault" transform="translate(500 225)">
+                <polygon class="v-outer" points="0,-104 90,-52 90,52 0,104 -90,52 -90,-52" />
+                <polygon class="v-inner" points="0,-74 64,-37 64,37 0,74 -64,37 -64,-37" />
+                <path class="v-lock" d="M-16 -8 v-14 a16 16 0 0 1 32 0 v14" />
+                <rect class="v-body" x="-22" y="-8" width="44" height="32" rx="3" />
+                <text y="140" class="nl">ESCROW VAULT · PDA</text>
+                <text y="160" class="nl dim">seeds: ["job", job_id]</text>
+              </g>
+              <!-- tokens -->
+              <g class="coin" id="coin"><circle r="20" /><circle r="14" class="ci" /><text y="5">$</text></g>
+              <g class="proof" id="proof"><rect x="-16" y="-12" width="32" height="24" rx="2" /><path d="M-7 0 l5 5 l9 -10" /></g>
+              <g class="claim" id="claim"><circle r="8" /></g>
+            </svg>
+            <ol class="es-steps mono">
+              <li data-s="0"><b>01</b> POST</li>
+              <li data-s="1"><b>02</b> FUND</li>
+              <li data-s="2"><b>03</b> TAKE</li>
+              <li data-s="3"><b>04</b> DELIVER</li>
+              <li data-s="4"><b>05</b> RELEASE</li>
+            </ol>
+          </div>
+
+          <div class="escrow-code">
+            <div class="code-head mono"><span>programs/opinion_escrow · draft</span><span>SOLANA · DEVNET</span></div>
+<pre class="code mono" aria-label="Escrow program design"><code><span class="cl" data-s="0">// one job, one hex, one vault</span>
+<span class="cl" data-s="0">#[account] struct Job { hex, poster, worker, amount, state }</span>
+<span class="cl gap"> </span>
+<span class="cl" data-s="1">pub fn fund(ctx, job_id, amount) {</span>
+<span class="cl" data-s="1">  // poster ATA ─▶ vault PDA (USDC)</span>
+<span class="cl" data-s="1">  token::transfer(poster → vault, amount)?;</span>
+<span class="cl" data-s="1">  job.state = Funded;</span>
+<span class="cl" data-s="1">}</span>
+<span class="cl" data-s="2">pub fn take(ctx) {</span>
+<span class="cl" data-s="2">  require!(job.state == Funded &amp;&amp; taker != poster);</span>
+<span class="cl" data-s="2">  job.worker = taker; job.state = Taken;</span>
+<span class="cl" data-s="2">}</span>
+<span class="cl" data-s="3">pub fn deliver(ctx) {</span>
+<span class="cl" data-s="3">  require!(signer == job.worker); job.state = Delivered;</span>
+<span class="cl" data-s="3">}</span>
+<span class="cl" data-s="4">pub fn release(ctx) {</span>
+<span class="cl" data-s="4">  require!(signer == job.poster);</span>
+<span class="cl" data-s="4">  token::transfer(vault → worker, job.amount)?;</span>
+<span class="cl" data-s="4">  close(vault); job.state = Paid;</span>
+<span class="cl" data-s="4">}</span>
+<span class="cl" data-s="9">pub fn cancel(ctx) { require!(state ≤ Funded); refund(poster) }</span></code></pre>
+            <p class="code-note mono">Program design shown. The app runs this exact state machine today; on-chain settlement is being wired on Solana devnet.</p>
+          </div>
+        </div>
+
+
+      </div>
+      <div class="scene">
+        <p class="story mono">A SCENE · TUESDAY · 08:10 · NOVI SAD</p>
+        <div class="scene-body">
+          <p class="scene-lead">Milica's delivery van won't start. Forty bakery orders are due by nine.</p>
+          <p>She opens the map, taps her hex and posts: "Cargo bike and two hands, one hour, 20 USDC." The money locks in escrow before she puts the phone down. 08:14: Luka, a student two streets away, takes it. 09:02: the last box is delivered. One tap and the USDC is in his wallet before he has his breath back.</p>
+          <p>They had walked past each other for three years. Now she has someone to call, and he has a regular gig and a record on the map. That's the job layer: not a platform between strangers, but a street that finally knows who can help.</p>
+        </div>
+      </div>
+      <ul class="escrow-facts">
+        <li><b class="mono">WORK, WHERE YOU STAND</b><p>The World Bank counts up to 435 million people already finding work online. Almost none of it is down the street. OPINION is: hold a place in the queue, shoot the gig, fix the bike, translate the menu. Work in minutes, not after three interviews.</p></li>
+        <li><b class="mono">LOCKED BY CODE</b><p>The poster's USDC moves into a program-owned vault before anyone lifts a finger. Not held by us, not held by them. Delivered means paid. Cancel before anyone takes it and every cent goes back.</p></li>
+        <li><b class="mono">NO BANK, NO BORDER</b><p>A student in Novi Sad and a designer in London get paid the same way: wallet to wallet, in seconds, in a dollar that doesn't care which country you were born in.</p></li>
+        <li><b class="mono">TRUST YOU CAN SEE</b><p>Every finished job leaves a record tied to a real place. Strangers become people you have worked with, two streets apart. That's how a map becomes a neighbourhood.</p></li>
+      </ul>
+    </section>
+
+    <!-- 6 · STABLECOINS -->
+    <section class="stable" id="stable" aria-label="Stablecoins">
+      <div class="stable-marquee" aria-hidden="true"><div class="sm-track"><span>USDC · WALLET TO WALLET · </span><span>USDC · WALLET TO WALLET · </span></div></div>
+      <div class="stable-inner">
+        <div class="stable-copy">
+          <p class="kicker mono">// 04 · MONEY THAT MOVES LIKE A MESSAGE //</p>
+          <h2 class="stable-h">A dollar is now a <em>packet</em>.<br />Send it like one.</h2>
+          <p>Stablecoins turned the dollar into an internet-native object: it moves like a message, settles in seconds and works at 3 a.m. on a Sunday. USDC alone passed $60 billion in supply in 2025, and the US set federal rules for payment stablecoins the same year. The rails are ready. What has been missing is a reason to use them with the person next to you.</p><p>OPINION is that reason. When paying a stranger costs almost nothing and takes seconds, every street becomes a marketplace: a favour, a ticket, a photo from inside the venue, a verified answer to "is it worth going?". The map becomes a wallet. Interaction becomes transaction, and the other way round.</p>
+          <ul class="stable-list mono">
+            <li><span>01</span>1 USDC tracks 1 USD by design</li>
+            <li><span>02</span>Wallet to wallet, peer to peer</li>
+            <li><span>03</span>Settles in seconds on Solana</li>
+            <li><span>04</span>US federal framework: GENIUS Act, July 2025</li>
+          </ul>
+        </div>
+        <svg class="coin-art" viewBox="-200 -200 400 400" aria-hidden="true">
+          <circle r="180" class="ca-ring" /><circle r="180" class="ca-ticks" />
+          <circle r="150" class="ca-ring" /><circle r="122" class="ca-ring dash" />
+          <text y="44" class="ca-sign">$</text>
+          <text y="104" class="ca-cap">USDC</text>
+          <path class="ca-arc" d="M -180 0 A 180 180 0 0 1 0 -180" />
+        </svg>
+      </div>
+
+      <div class="loop">
+        <svg class="loop-svg" viewBox="-300 -300 600 600" aria-hidden="true">
+          <circle r="230" class="lp-ring" /><circle r="230" class="lp-ticks" />
+          <path class="lp-arc" d="M 0 -230 A 230 230 0 1 1 -0.1 -230" />
+          <g class="lp-dot"><circle r="7" /></g>
+        </svg>
+        <ol class="loop-steps mono" aria-label="The value loop">
+          <li style="--a:-90deg"><b>OPINION</b>you see it</li>
+          <li style="--a:-18deg"><b>SIGNAL</b>verified in the hex</li>
+          <li style="--a:54deg"><b>ORACLE</b>apps &amp; agents read it</li>
+          <li style="--a:126deg"><b>VALUE</b>it is worth something</li>
+          <li style="--a:198deg"><b>YOU</b>paid for it</li>
+        </ol>
+        <h2 class="loop-h">Make every<br />opinion matter.</h2>
+      </div>
+    </section>
+
+    <!-- 7 · ORACLE -->
+    <section class="oracle" id="oracle" aria-label="The oracle">
+      <div class="oracle-head">
+        <p class="kicker mono">// 05 · ORACLE API · EARLY ACCESS //</p>
+        <h2>Humans in. Robots out.<br /><span class="dim">An oracle for reality.</span></h2>
+        <p>Blockchains have price oracles. Machines need a reality oracle. Every observation is a signed record with proof of place and a reputation score, streamed per hex to apps, AI agents, cities and robots. Real-time geodata, produced by everyone, paid to the people who make it.</p>
+      </div>
+      <div class="oracle-grid">
+        <div class="pipe">
+          <svg class="pipe-svg" viewBox="0 0 300 640" aria-hidden="true">
+            <path class="pp" d="M150 40 V 600" />
+            <path class="pp faint" d="M150 520 C 60 540 40 580 30 610" /><path class="pp faint" d="M150 520 C 240 540 260 580 270 610" />
+          </svg>
+          <ol class="pipe-steps mono">
+            <li data-text="PEOPLE">PEOPLE</li>
+            <li data-text="HEX (H3 · RES 10)">HEX (H3 · RES 10)</li>
+            <li data-text="SIGNED OBSERVATION">SIGNED OBSERVATION</li>
+            <li data-text="REPUTATION &amp; CONSENSUS">REPUTATION &amp; CONSENSUS</li>
+            <li data-text="LIVE FEEDS">LIVE FEEDS</li>
+            <li data-text="ROBOTS · AI AGENTS · CITIES · APPS">ROBOTS · AI AGENTS · CITIES · APPS</li>
+          </ol>
+        </div>
+        <div class="record">
+          <div class="code-head mono"><span>observation.json</span><span>ED25519</span></div>
+<pre class="code mono json"><code><span class="jl">{</span>
+<span class="jl">  "hex": <i>"8a195da49b5ffff"</i>,</span>
+<span class="jl">  "res": <i>10</i>,</span>
+<span class="jl">  "kind": <i>"note"</i>,</span>
+<span class="jl">  "text": <i>"queue at the gate ~20 min"</i>,</span>
+<span class="jl">  "t": <i>"2026-11-15T18:42:07Z"</i>,</span>
+<span class="jl">  "author": <i>"did:sol:7xKX…"</i>,</span>
+<span class="jl">  "presence": { "verified": <i>"device+server"</i>, "accuracy_m": <i>12</i> },</span>
+<span class="jl">  "reputation": <i>0.92</i>,</span>
+<span class="jl">  "sig": <i>"ed25519:…"</i></span>
+<span class="jl">}</span></code></pre>
+          <p class="consumers mono">CONSUMERS → APPS &amp; WALLETS · AI AGENTS · CITY DASHBOARDS · ROBOTICS &amp; WORLD MODELS · EVENT ORGANIZERS</p>
+        </div>
+      </div>
+
+      <div class="oracle-head sensors-head">
+        <p class="kicker mono">// SENSOR ROADMAP · OPT-IN //</p>
+        <h2>4.6B phones.<br /><span class="dim">One sensor network.</span></h2>
+        <p>1.24 billion new smartphones shipped in 2024 alone (IDC), on top of the 4.6 billion people already online on mobile. Every one carries GPS, a camera, a mic, radios and a stack of motion, pressure and light sensors. The largest sensor network ever built is already deployed, refreshed every year, and carried to exactly where things happen. Zero hardware. We switch it on: opt-in, per hex, numbers only.</p>
+      </div>
+      <ul class="escrow-facts sensors">
+        <li><b class="mono">GNSS · LIVE</b><p>Your hex, proven twice.</p></li>
+        <li><b class="mono">CAMERA · LIVE</b><p>Moments, pinned to place.</p></li>
+        <li><b class="mono">BAROMETER · NEXT</b><p>Which floor. Which storm.</p></li>
+        <li><b class="mono">MOTION · NEXT</b><p>Crowd flow, no cameras.</p></li>
+        <li><b class="mono">MIC · dB ONLY</b><p>Noise as a number. Never audio.</p></li>
+        <li><b class="mono">LIGHT</b><p>Which streets stay dark.</p></li>
+        <li><b class="mono">MAGNETOMETER</b><p>Where you are indoors.</p></li>
+        <li><b class="mono">WI-FI · BLUETOOTH</b><p>A crowd count, anonymous.</p></li>
+      </ul>
+      <div class="scene">
+        <p class="story mono">A SCENE · SOON · BEOGRAD · 17:52</p>
+        <div class="scene-body">
+          <p class="scene-lead">A pressure drop ripples across 300 hexes in eleven minutes.</p>
+          <p>It's measured by barometers already inside people's pockets. The forecast still says sunny; the map doesn't. Terrace bars on Strahinjića Bana pull the umbrellas in, a courier fleet reroutes, and the first person to post "hail on Slavija" is the most useful person in the city for ten minutes. Nobody installed a single weather station.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 · FUNCTIONS -->
+    <section class="functions" id="functions" aria-label="Functions">
+      <header class="fn-head">
+        <p class="kicker mono">// 06 · EVERY FUNCTION //</p>
+        <h2>One map.<br />Sixteen ways in.</h2>
+      </header>
+      <div class="fn-grid">
+        <article class="fn"><span class="fn-i mono">F/01</span><h3>Live 3D map</h3><p class="fn-l">The interface is the data.</p><p>A dark, glassy 3D city with real buildings, streets, people dots and live activity glowing per hex. You see information where it happens.</p></article>
+        <article class="fn"><span class="fn-i mono">F/02</span><h3>Hexes · proof of place</h3><p class="fn-l">Every signal carries a location proof.</p><p>The world is split into H3 res-10 hexagons. You post only inside the hex you stand in, verified on-device and server-side.</p></article>
+        <article class="fn"><span class="fn-i mono">F/03</span><h3>Notes</h3><p class="fn-l">The raw real-time stream.</p><p>Short, fast observations ("line is 20 min", "street closed") that fade with time. High-frequency ground truth.</p></article>
+        <article class="fn"><span class="fn-i mono">F/04</span><h3>Topics</h3><p class="fn-l">Noise into local knowledge.</p><p>Threaded discussions anchored to a place, building structured knowledge and reputation over time.</p></article>
+        <article class="fn hi"><span class="fn-i mono">F/05</span><h3>Jobs · USDC P2P</h3><p class="fn-l">The thing everyone chases, one hex away.</p><p>Post a paid task where you stand. Someone nearby takes it, the USDC waits in escrow, and it lands in their wallet the moment the work is done. Freelance without the platform, the paperwork or the payout delay.</p></article>
+        <article class="fn"><span class="fn-i mono">F/06</span><h3>Events · live</h3><p class="fn-l">Watch the map warm up.</p><p>Real events from Luma and Eventbrite rise as light beacons. As people arrive the hex heats up, and live comments from inside stream onto the map: the queue, the set, the vibe. Landmark events get their own 3D glass buildings.</p></article>
+        <article class="fn"><span class="fn-i mono">F/07</span><h3>Moments</h3><p class="fn-l">Capture the moment, pin it to the place.</p><p>Photos live inside the hex they were taken in, stamped with time and proof of place. Not a feed of the past: a window into what that corner looks like right now.</p></article>
+        <article class="fn"><span class="fn-i mono">F/08</span><h3>Sports</h3><p class="fn-l">The biggest gatherings, mapped.</p><p>6,280+ venues from OpenStreetMap (1,088 stadiums and arenas, 5,193 pitches and courts) plus real fixtures with live scores on the real stadium.</p></article>
+        <article class="fn"><span class="fn-i mono">F/09</span><h3>Crews</h3><p class="fn-l">Same plans, same people.</p><p>Group chat around an event: wave, coordinate, meet.</p></article>
+        <article class="fn"><span class="fn-i mono">F/10</span><h3>Profiles &amp; friends</h3><p class="fn-l">A graph built on presence.</p><p>Tap any avatar for posts, hexes and recent activity. Add a friend, send a message. Reputation from being there, not from followers.</p></article>
+        <article class="fn"><span class="fn-i mono">F/11</span><h3>ZK Chat</h3><p class="fn-l">The relay sees only ciphertext.</p><p>End-to-end-encrypted rooms and DMs (ECDH P-256 → AES-256-GCM). Keys rotate when members change.</p></article>
+        <article class="fn hi"><span class="fn-i mono">F/12</span><h3>Market</h3><p class="fn-l">A city's economy in one place.</p><p>Jobs, ticket resale where the USDC releases only when the ticket scans at the door, and 23 crypto cards available in your region, researched from issuer sources.</p></article>
+        <article class="fn"><span class="fn-i mono">F/13</span><h3>Timeline import</h3><p class="fn-l">Your data stays yours.</p><p>Import your Google Timeline on-device to see your real footprint as hexes. It never leaves your browser.</p></article>
+        <article class="fn"><span class="fn-i mono">F/14</span><h3>Traffic lights</h3><p class="fn-l">Infrastructure state as a feed.</p><p>4,875 real signal positions from OpenStreetMap, with simulated phases, glowing at street level.</p></article>
+        <article class="fn"><span class="fn-i mono">F/15</span><h3>Landmarks</h3><p class="fn-l">Places become stages.</p><p>Hand-built three.js glass architecture: Breakpoint at Olympia, Hacker House at Somerset House, and the 1884 Belgrade station.</p></article>
+        <article class="fn"><span class="fn-i mono">F/16</span><h3>Globe entry · ghost mode</h3><p class="fn-l">The planet is the canvas.</p><p>A spinning globe, a slot-machine city reel, a cinematic dive. Then ghost mode, Midnight / Neon / Dusk lighting and teleport.</p></article>
+      </div>
+    </section>
+
+    <!-- 9 · CONNECT -->
+    <section class="connect" id="connect" aria-label="Find your people">
+      <div class="connect-copy">
+        <p class="kicker mono">// 07 · EVENTS · CAPTURE THE MOMENT //</p>
+        <h2>The map warms up<br />before the<br />doors open.</h2>
+        <p class="story mono">A SCENE · SATURDAY · 19:40 · OLYMPIA, LONDON</p>
+        <p>Two hours before doors, one hex on Hammersmith Road starts to glow. A note lands: "queue already at the corner." Then a photo of the stage being rigged. Someone across town reads both, skips the taxi, takes the Overground and walks straight in.</p>
+        <p>At 21:05 the headliner is late. The hex says so before the venue does. A crew of six forms around the side entrance; four of them have never met. By midnight there's a job in the hex, a ride home split three ways and paid in USDC, and a thread about the set that people will still be reading next week.</p>
+        <p>That is geo-informing: the people inside the moment telling everyone else what it's really like, while it is still happening. You came for the event. You leave with a crew. When it gets private, ZK Chat keeps it that way.</p>
+        <p class="scene-lead">Capture the moment. Pin it to the place. Let the city see it while it's still happening.</p>
+      </div>
+      <svg class="crowd" viewBox="0 0 600 600" aria-hidden="true"></svg>
+    </section>
+
+    <!-- 10 · MACHINES (white) -->
+    <section class="machines" id="machines" aria-label="Ground truth for machines">
+      <div class="white-wipe" aria-hidden="true"></div>
+      <div class="machines-inner">
+        <p class="kicker mono">// 08 · WHY NOW · HUMANS → ROBOTS //</p>
+        <h2>From humans<br />to robots.</h2>
+        <div class="m-grid">
+          <figure class="tile stat"><span class="tile-n mono">01</span><svg class="tile-hex" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 90,27 90,73 50,96 10,73 10,27" /><polygon points="50,24 73,37 73,63 50,76 27,63 27,37" class="in" /><circle cx="50" cy="50" r="4" /></svg><figcaption>4.66M</figcaption><p><b>Industrial robots</b> at work today.</p></figure>
+          <figure class="tile stat"><span class="tile-n mono">02</span><svg class="tile-hex" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 90,27 90,73 50,96 10,73 10,27" /><polygon points="50,24 73,37 73,63 50,76 27,63 27,37" class="in" /><circle cx="50" cy="50" r="4" /></svg><figcaption>21B → 39B</figcaption><p><b>Connected IoT devices</b>, 2025 → 2030.</p></figure>
+          <figure class="tile stat"><span class="tile-n mono">03</span><svg class="tile-hex" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 90,27 90,73 50,96 10,73 10,27" /><polygon points="50,24 73,37 73,63 50,76 27,63 27,37" class="in" /><circle cx="50" cy="50" r="4" /></svg><figcaption>13M</figcaption><p><b>Humanoids</b> in service by 2035. 1B+ by 2050 (forecast).</p></figure>
+          <figure class="tile stat"><span class="tile-n mono">04</span><svg class="tile-hex" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 90,27 90,73 50,96 10,73 10,27" /><polygon points="50,24 73,37 73,63 50,76 27,63 27,37" class="in" /><circle cx="50" cy="50" r="4" /></svg><figcaption>4.4B</figcaption><p><b>People on 5G</b> already. The pipe is built.</p></figure>
+        </div>
+        <div class="scene light">
+          <p class="story mono">A SCENE · 2031 · KNEZ MIHAILOVA, BEOGRAD</p>
+          <div class="scene-body">
+            <p class="scene-lead">A delivery robot turns onto Knez Mihailova. Its map says the street is open.</p>
+            <p>The map is three weeks old. The hex is three seconds old: a street festival since 14:00, crowd density high, the north end blocked, a dozen people confirming it from inside. The robot asks OPINION, gets the answer in milliseconds and takes the parallel street. The people who posted that afternoon just told a machine something no sensor could.</p>
+          </div>
+        </div>
+        <p class="machines-p">Machines can measure the street. Only people can tell them what it means. OPINION is the pipeline in between: live, location-proofed, consented. No raw tracking sold. Ever.</p>
+        <p class="machines-src mono">IFR World Robotics 2025 · IoT Analytics 2025 · Morgan Stanley (forecast) · GSMA 2025</p>
+      </div>
+    </section>
+
+    <!-- 12 · CITIES -->
+    <section class="cities" id="cities" aria-label="Live cities">
+      <canvas class="globe-mini" aria-hidden="true"></canvas>
+      <p class="sr-only">Live in London, New York, San Francisco, Beograd and Novi Sad.</p>
+      <p class="cities-cap mono">// 5 LIVE CITIES · MORE WHEN YOU STAND THERE //</p>
+    </section>
+
+    <!-- 13 · CTA -->
+    <section class="cta" id="cta" aria-label="Open the map">
+      <h2 class="cta-h"><span>Stand somewhere.</span><span>Say something true.</span></h2>
+      <a class="btn btn-w cta-btn" href="https://app.useopinion.io/">Open the map <span aria-hidden="true">→</span></a>
+      <p class="cta-line">Share your own, help the world, make friends.</p>
+    </section>
+
+    <footer class="footer mono">
+      <p>Data: © OpenStreetMap contributors · Luma · ESPN / TheSportsDB · OpenFreeMap. Traffic-light phases are simulated. Escrow program in development. Oracle API: early access. Sensors beyond GNSS and camera are on the roadmap. Gig-work figure: World Bank, Working Without Borders (2023). Stablecoin figures: Circle / public reporting, 2025. Smartphone shipments: IDC, 2024. Scenes are illustrative.</p>
+      <p>© 2026 OPINION</p>
+    </footer>
+  </main>
+
+  <!-- Fixed bottom HUD -->
+  <nav class="hud" aria-label="Quick actions">
+    <div class="hud-ruler" aria-hidden="true"><i class="hud-needle"></i></div>
+    <div class="hud-row">
+      <span class="hud-clock mono" aria-label="Current UTC time">--:--:-- UTC</span>
+      <div class="hud-btns">
+        <a class="btn btn-w" href="https://app.useopinion.io/">Open the map</a>
+        <!-- TODO: replace with the real early-access mailto once the address exists -->
+        <a class="btn btn-g" href="#oracle">Oracle API</a>
+      </div>
+      <span class="hud-prog mono" aria-hidden="true">000.000</span>
+    </div>
+    <!-- TODO: real X / Discord / Docs URLs -->
+    <div class="hud-links mono"><a href="#">X</a><a href="#">Discord</a><a href="#">Docs</a></div>
+  </nav>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
