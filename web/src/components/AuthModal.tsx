@@ -10,6 +10,8 @@ type Step = { k: 'start' } | { k: 'code'; email: string; devCode?: string } | { 
 
 const ERR: Record<string, string> = {
   invalid_email: "That doesn't look like an email address.",
+  account_exists: 'There is already an account with this email. Sign in instead.',
+  no_account: 'No account with this email yet. Sign up instead.',
   rate_limited: 'Too many codes requested. Wait a minute and try again.',
   email_not_configured: 'Email sign-in isn’t switched on for this server yet.',
   google_not_configured: 'Google sign-in isn’t switched on for this server yet.',
@@ -67,7 +69,7 @@ export default function AuthModal() {
     setErr(null)
     if (!EMAIL_RE.test(email.trim())) return setErr(ERR.invalid_email)
     setBusy(true)
-    const r = await emailStart(email.trim())
+    const r = await emailStart(email.trim(), mode === 'up' ? 'signup' : 'signin')
     setBusy(false)
     if (!r.ok) return setErr(r.error === 'rate_limited' && r.retryAfter ? `Too many codes. Try again in ${r.retryAfter}s.` : (ERR[r.error] ?? 'Could not send the code.'))
     setStep({ k: 'code', email: email.trim(), devCode: r.devCode })
@@ -201,9 +203,9 @@ export default function AuthModal() {
 
         {step.k === 'code' && (
           <>
-            <h2 className="font-display mt-5 text-[22px] leading-tight font-semibold text-white">Check your email</h2>
+            <h2 className="font-display mt-5 text-[22px] leading-tight font-semibold text-white">{mode === 'up' ? 'Confirm your email' : 'Check your email'}</h2>
             <p className="mt-1 text-[13px] text-white/55">
-              We sent a 6-digit code to <b className="text-white/85">{step.email}</b>.
+              We sent a 6-digit {mode === 'up' ? 'sign-up' : 'sign-in'} code to <b className="text-white/85">{step.email}</b>.{mode === 'up' ? ' Enter it to create your account.' : ''}
             </p>
             {step.devCode && (
               <div className="mt-3 rounded-xl border border-[#14f195]/30 bg-[#14f195]/[.06] px-3 py-2 font-mono text-[12px] text-[#14f195]">
@@ -284,6 +286,17 @@ export default function AuthModal() {
         )}
 
         {err && <p className="mt-3 text-[12.5px] text-[#ff8a8a]">{err}</p>}
+        {err && (err === ERR.account_exists || err === ERR.no_account) && step.k === 'start' && (
+          <button
+            onClick={() => {
+              setMode(err === ERR.account_exists ? 'in' : 'up')
+              setErr(null)
+            }}
+            className="btn-ghost mt-2 w-full text-[13px]"
+          >
+            {err === ERR.account_exists ? 'Switch to Sign in' : 'Switch to Sign up'}
+          </button>
+        )}
         <p className="mt-5 text-center text-[10.5px] leading-relaxed text-white/30">By continuing you agree to use OPINION respectfully. We only store your email or wallet address and your handle.</p>
       </div>
     </div>

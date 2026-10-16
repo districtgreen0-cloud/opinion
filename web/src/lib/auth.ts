@@ -44,14 +44,16 @@ const demoAccount = (email: string, provider: 'google' | 'email', name: string |
   createdAt: Date.now(),
 })
 
-export async function emailStart(email: string): Promise<{ ok: true; devCode?: string } | { ok: false; error: string; retryAfter?: number }> {
+export type AuthIntent = 'signin' | 'signup'
+
+export async function emailStart(email: string, intent: AuthIntent = 'signin'): Promise<{ ok: true; devCode?: string } | { ok: false; error: string; retryAfter?: number }> {
   if (!EMAIL_RE.test(email)) return { ok: false, error: 'invalid_email' }
   if (AUTH_DEMO) {
     const code = String(Math.floor(100000 + Math.random() * 900000))
     demoCodes.set(email.toLowerCase(), code)
     return { ok: true, devCode: code }
   }
-  const r = await call<{ ok: true; devCode?: string }>('/api/auth/email/start', { method: 'POST', body: JSON.stringify({ email }) })
+  const r = await call<{ ok: true; devCode?: string }>('/api/auth/email/start', { method: 'POST', body: JSON.stringify({ email, intent }) })
   if (r.ok) return { ok: true, devCode: r.data.devCode }
   return { ok: false, error: r.error, retryAfter: r.data?.retryAfter as number | undefined }
 }

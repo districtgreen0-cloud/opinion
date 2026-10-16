@@ -270,6 +270,14 @@ async function emailStart(req: Request, env: Env): Promise<Response> {
   const configured = emailConfigured(env);
   if (!configured && !dev) return err(req, "email_not_configured", 501);
 
+  // Sign up and sign in are different doors: sign-up needs a new address, sign-in an existing account.
+  const intent = body?.intent === "signup" ? "signup" : body?.intent === "signin" ? "signin" : null;
+  if (intent) {
+    const exists = await env.DB.prepare("SELECT 1 FROM accounts WHERE email = ?").bind(email).first();
+    if (intent === "signup" && exists) return err(req, "account_exists", 409);
+    if (intent === "signin" && !exists) return err(req, "no_account", 404);
+  }
+
   const now = Date.now();
   const last = await env.DB.prepare("SELECT sent_at FROM email_codes WHERE email = ?").bind(email).first<{ sent_at: number }>();
   if (last && now - last.sent_at < CODE_MIN_GAP_MS) {
@@ -294,11 +302,12 @@ async function emailStart(req: Request, env: Env): Promise<Response> {
   if (!configured) return json(req, { ok: true, devCode: code }); // DEV_RETURN_CODES=1 only
 
   try {
+    const signup = intent === "signup";
     await sendMail(env, {
       to: email,
-      subject: `${code} is your OPINION sign-in code`,
-      text: `Your OPINION sign-in code is ${code}\n\nIt expires in 10 minutes. If you didn't request it, ignore this email.`,
-      html: `<p>Your OPINION sign-in code is</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>It expires in 10 minutes. If you didn't request it, ignore this email.</p>`,
+      subject: signup ? `${code} · confirm your email to join OPINION` : `${code} is your OPINION sign-in code`,
+      text: `${signup ? "Welcome! Confirm your email with this code to create your OPINION account:" : "Your OPINION sign-in code is"} ${code}\n\nIt expires in 10 minutes. If you didn't request it, ignore this email.`,
+      html: `<p>${signup ? "Welcome! Confirm your email with this code to create your OPINION account:" : "Your OPINION sign-in code is"}</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>It expires in 10 minutes. If you didn't request it, ignore this email.</p>`,
     });
   } catch (e) {
     console.error(JSON.stringify({ msg: "email_send_failed", error: String(e) }));
