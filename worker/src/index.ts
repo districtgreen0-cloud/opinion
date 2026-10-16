@@ -375,7 +375,7 @@ async function route(req: Request, env: Env, ctx: ExecutionContext): Promise<Res
   if (m === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(req) });
 
   if (path.startsWith("/api/auth/")) {
-    const res = await handleAuth(req, env, path, m);
+    const res = await handleAuth(req, env, ctx, path, m);
     if (res) return res;
   }
 

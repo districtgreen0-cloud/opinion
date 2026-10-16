@@ -54,7 +54,9 @@ Sign-in is Google OAuth (Authorization Code + PKCE) or an emailed 6-digit one-ti
 
 **Google setup:** Google Cloud console -> APIs & Services -> OAuth consent screen (External; scopes openid, email, profile) -> Credentials -> Create OAuth client ID -> Web application, with authorized redirect URIs `http://localhost:8787/api/auth/google/callback` and `https://<prod-host>/api/auth/google/callback`. Then `npx wrangler secret put GOOGLE_CLIENT_ID` and `npx wrangler secret put GOOGLE_CLIENT_SECRET`. Set `OAUTH_REDIRECT_ORIGIN` only if the Worker sits behind a different public origin than the request URL.
 
-**Email setup (Cloudflare Email Service):** the `send_email` binding `EMAIL` is already in `wrangler.jsonc`. Onboard a sending domain (`npx wrangler email sending enable yourdomain.com`), then set `EMAIL_FROM` (e.g. `OPINION <login@yourdomain.com>`). While `EMAIL_FROM` is still the `example.com` placeholder, email counts as unconfigured.
+**Email setup (Cloudflare Email Service):** the `send_email` binding `EMAIL` is already in `wrangler.jsonc`. Onboard the sending domain once (`npx wrangler email sending enable useopinion.io`; the zone is on Cloudflare so SPF/DKIM records are added automatically, wait for "verified"), then deploy. `EMAIL_FROM` = sign-in codes (`login@`), `MAIL_FROM_HELLO` / `MAIL_REPLY_TO` = welcome mail (`hello@`), `APP_URL` = link in the mail. If `EMAIL_FROM` contains `example.com`, nothing is sent. Replies to `hello@` reach you only if an Email Routing rule forwards it to a real inbox (dashboard → Email → Email Routing).
+
+**Welcome mail (`src/mail.ts`):** sent once per new account (Google or email code; wallet-only sign-ins have no email) from `ctx.waitUntil` after the session is created, so it never delays a login. `accounts.welcomed_at` (migration 0008) records the successful send; a failed send is logged as `welcome_send_failed` and retried once on the next login while the account is < 24 h old.
 
 ## Deploy
 

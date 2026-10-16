@@ -1,5 +1,6 @@
 import { err, json, readJson, str } from "./http";
 import type { Account } from "./types";
+import { emailConfigured, sendMail, sendWelcome } from "./mail";
 
 // Secrets / optional vars that wrangler types cannot know about (set via `wrangler secret put` or .dev.vars).
 declare global {
@@ -46,7 +47,7 @@ function safeEqual(a: string, b: string): boolean {
 
 interface AccountRow {
   id: string; email: string | null; google_sub: string | null; name: string | null; picture: string | null;
-  handle: string; avatar: string; email_login: number; created_at: number;
+  handle: string; avatar: string; email_login: number; created_at: number; welcomed_at: number | null;
 }
 const toAccount = (r: AccountRow): Account => ({
   id: r.id, email: r.email, name: r.name, picture: r.picture, handle: r.handle, avatar: r.avatar,
@@ -63,8 +64,10 @@ function baseHandle(email: string): string {
 
 interface Identity { email: string; googleSub?: string; name?: string; picture?: string; viaCode?: boolean }
 
-/** Find-or-create by google_sub, then by verified email (this is what links Google and email-code logins). */
-async function upsertAccount(env: Env, id: Identity): Promise<AccountRow | null> {
+interface Upsert { row: AccountRow; created: boolean }
+
+/** Find-or-create by google_sub, then by verified email (this is what links Google and email-code logins). `created` is true only for a brand-new row. */
+async function upsertAccount(env: Env, id: Identity): Promise<Upsert | null> {
   const now = Date.now();
   const find = async (): Promise<AccountRow | null> => {
     if (id.googleSub) {
@@ -80,7 +83,7 @@ async function upsertAccount(env: Env, id: Identity): Promise<AccountRow | null>
     await env.DB.prepare(
       "UPDATE accounts SET google_sub = COALESCE(google_sub, ?1), name = COALESCE(name, ?2), picture = COALESCE(picture, ?3), email_login = MAX(email_login, ?4) WHERE id = ?5",
     ).bind(id.googleSub ?? null, id.name ?? null, id.picture ?? null, id.viaCode ? 1 : 0, row.id).run();
-    return (await env.DB.prepare("SELECT * FROM accounts WHERE id = ?").bind(row.id).first<AccountRow>()) ?? row;
+    return { row: (await env.DB.prepare("SELECT * FROM accounts WHERE id = ?").bind(row.id).first<AccountRow>()) ?? row, created: false };
   }
 
   const accountId = crypto.randomUUID();
@@ -93,11 +96,12 @@ async function upsertAccount(env: Env, id: Identity): Promise<AccountRow | null>
       await env.DB.prepare(
         "INSERT INTO accounts (id, email, google_sub, name, picture, handle, avatar, email_login, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
       ).bind(accountId, id.email, id.googleSub ?? null, id.name ?? null, id.picture ?? null, handle, avatar, id.viaCode ? 1 : 0, now).run();
-      return await env.DB.prepare("SELECT * FROM accounts WHERE id = ?").bind(accountId).first<AccountRow>();
+      const fresh = await env.DB.prepare("SELECT * FROM accounts WHERE id = ?").bind(accountId).first<AccountRow>();
+      return fresh ? { row: fresh, created: true } : null;
     } catch (e) {
       if (!isUnique(e)) throw e;
       row = await find(); // lost a race on email/google_sub -> use the winner
-      if (row) return row;
+      if (row) return { row, created: false };
       // otherwise the handle collided: retry with a longer suffix
     }
   }
@@ -194,7 +198,7 @@ async function googleStart(req: Request, env: Env, url: URL): Promise<Response> 
   return redirect(`https://accounts.google.com/o/oauth2/v2/auth?${q}`);
 }
 
-async function googleCallback(req: Request, env: Env, url: URL): Promise<Response> {
+async function googleCallback(req: Request, env: Env, ctx: ExecutionContext, url: URL): Promise<Response> {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return err(req, "google_not_configured", 501);
   const state = url.searchParams.get("state");
   if (!state || state.length > 128) return err(req, "invalid_state", 400);
@@ -241,7 +245,8 @@ async function googleCallback(req: Request, env: Env, url: URL): Promise<Respons
       ...(info.picture ? { picture: info.picture.slice(0, 512) } : {}),
     });
     if (!acct) return fail("account_conflict");
-    const token = await createSession(env, acct.id);
+    const token = await createSession(env, acct.row.id);
+    ctx.waitUntil(sendWelcome(env, acct.row, acct.created)); // first sign-up → welcome mail, never blocks the login
     return redirect(back, cookieHeader(req, token, SESSION_TTL_S));
   } catch (e) {
     console.error(JSON.stringify({ msg: "google_callback_failed", error: String(e) }));
@@ -250,13 +255,6 @@ async function googleCallback(req: Request, env: Env, url: URL): Promise<Respons
 }
 
 // ---------- email one-time codes ----------
-
-function parseFrom(v: string): string | EmailAddress {
-  const m = v.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
-  return m && m[1] ? { email: m[2]!.trim(), name: m[1].replace(/^"|"$/g, "") } : m ? m[2]!.trim() : v.trim();
-}
-
-const emailConfigured = (env: Env) => Boolean(env.EMAIL) && !/@example\.com\b/i.test(env.EMAIL_FROM);
 
 function normalizeEmail(v: unknown): string | null {
   const e = str(v)?.trim().toLowerCase();
@@ -296,9 +294,8 @@ async function emailStart(req: Request, env: Env): Promise<Response> {
   if (!configured) return json(req, { ok: true, devCode: code }); // DEV_RETURN_CODES=1 only
 
   try {
-    await env.EMAIL.send({
+    await sendMail(env, {
       to: email,
-      from: parseFrom(env.EMAIL_FROM),
       subject: `${code} is your OPINION sign-in code`,
       text: `Your OPINION sign-in code is ${code}\n\nIt expires in 10 minutes. If you didn't request it, ignore this email.`,
       html: `<p>Your OPINION sign-in code is</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>It expires in 10 minutes. If you didn't request it, ignore this email.</p>`,
@@ -311,7 +308,7 @@ async function emailStart(req: Request, env: Env): Promise<Response> {
   return json(req, { ok: true });
 }
 
-async function emailVerify(req: Request, env: Env): Promise<Response> {
+async function emailVerify(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const body = await readJson(req);
   const email = normalizeEmail(body?.email);
   const code = str(body?.code)?.trim();
@@ -345,8 +342,9 @@ async function emailVerify(req: Request, env: Env): Promise<Response> {
 
   const acct = await upsertAccount(env, { email, viaCode: true });
   if (!acct) return err(req, "account_error", 500);
-  const token = await createSession(env, acct.id);
-  return json(req, { account: toAccount(acct) }, 200, { "Set-Cookie": cookieHeader(req, token, SESSION_TTL_S) });
+  const token = await createSession(env, acct.row.id);
+  ctx.waitUntil(sendWelcome(env, acct.row, acct.created)); // first sign-up → welcome mail, never blocks the login
+  return json(req, { account: toAccount(acct.row) }, 200, { "Set-Cookie": cookieHeader(req, token, SESSION_TTL_S) });
 }
 
 // ---------- me / logout ----------
@@ -384,12 +382,12 @@ async function logout(req: Request, env: Env): Promise<Response> {
 }
 
 /** Router for /api/auth/*; returns null when the path is not an auth route. */
-export async function handleAuth(req: Request, env: Env, path: string, m: string): Promise<Response | null> {
+export async function handleAuth(req: Request, env: Env, ctx: ExecutionContext, path: string, m: string): Promise<Response | null> {
   const url = new URL(req.url);
   if (path === "/api/auth/google/start" && m === "GET") return googleStart(req, env, url);
-  if (path === "/api/auth/google/callback" && m === "GET") return googleCallback(req, env, url);
+  if (path === "/api/auth/google/callback" && m === "GET") return googleCallback(req, env, ctx, url);
   if (path === "/api/auth/email/start" && m === "POST") return emailStart(req, env);
-  if (path === "/api/auth/email/verify" && m === "POST") return emailVerify(req, env);
+  if (path === "/api/auth/email/verify" && m === "POST") return emailVerify(req, env, ctx);
   if (path === "/api/auth/me" && m === "GET") {
     const account = await getAccount(req, env);
     return account ? json(req, { account }) : err(req, "unauthenticated", 401);

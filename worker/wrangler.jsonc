@@ -49,9 +49,13 @@
     // Auth. DEV_RETURN_CODES="1" (only via .dev.vars!) makes /api/auth/email/start return the code in JSON when
     // email sending is not configured. Never set it to "1" in production.
     "DEV_RETURN_CODES": "0",
-    // PLACEHOLDER: must be an address on a domain onboarded to Cloudflare Email Service
-    // (npx wrangler email sending enable yourdomain.com). While it contains "example.com" email sending counts as unconfigured.
-    "EMAIL_FROM": "OPINION <login@example.com>"
+    // Mail (src/mail.ts). Sender domain must be onboarded to Cloudflare Email Service:
+    //   npx wrangler email sending enable useopinion.io   (zone is on Cloudflare → SPF/DKIM DNS is added for you)
+    // Until EMAIL_FROM points at a real domain (anything @example.com) no mail is sent: codes answer 501, welcome mail is skipped.
+    "EMAIL_FROM": "OPINION <login@useopinion.io>",
+    "MAIL_FROM_HELLO": "OPINION <hello@useopinion.io>",
+    "MAIL_REPLY_TO": "OPINION <hello@useopinion.io>",
+    "APP_URL": "https://app.useopinion.io"
     // Optional: OAUTH_REDIRECT_ORIGIN (e.g. "https://opinion.example.workers.dev") to force the Google redirect_uri origin.
   },
 

@@ -1,0 +1,1 @@
+{ "name": "opinion-promo", "private": true, "type": "module", "scripts": { "dev": "vite --port 4790 --strictPort", "render": "node render.mjs", "audio": "python3 audio.py", "video": "npm run render && npm run audio && node mux.mjs" } }

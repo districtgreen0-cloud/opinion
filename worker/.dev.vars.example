@@ -6,3 +6,7 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 # Earn mode (local only values)
 EARN_SALT=local-dev-salt-change-me-32bytes-minimum
 ADMIN_TOKEN=local-admin-token-at-least-24-chars
+# Welcome mail link in local dev
+APP_URL=http://localhost:4700
+# Keep local dev "unconfigured" so /api/auth/email/start returns the code in JSON instead of sending
+EMAIL_FROM=OPINION <login@example.com>
