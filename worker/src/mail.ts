@@ -61,16 +61,16 @@ export function welcomeEmail(i: WelcomeInput): { subject: string; text: string; 
   const steps = [
     "Open the map and find your hex: the ~15,000 m² cell you're standing in.",
     "Drop your first note. You can only post where you stand, so every post carries proof of place.",
-    "Pick your handle and avatar, then switch on Earn if you want rewards for what you share.",
+    "Pick your handle and avatar so people in your hex know who you are.",
   ];
-  const subject = i.code ? `Welcome to OPINION · your code is ${i.code}` : `Welcome to OPINION, ${i.handle ?? ""}`.trim();
+  const subject = i.code ? `${i.code} is your OPINION sign-up code` : `Welcome to OPINION, ${i.handle ?? ""}`.trim();
   const text = [
     `Hi ${who},`,
     ``,
-    `Welcome to OPINION: the live social map where people become the world's sensor network.`,
+    i.code ? `Thanks for signing up to OPINION, the live social map of your city.` : `Welcome to OPINION: the live social map where people become the world's sensor network.`,
     ``,
     ...codeBlockText,
-    `Three things to do first:`,
+    i.code ? `After you sign in:` : `Three things to do first:`,
     ...steps.map((s, k) => `${k + 1}. ${s}`),
     ``,
     `Open the map: ${i.loginUrl}`,
@@ -84,9 +84,9 @@ export function welcomeEmail(i: WelcomeInput): { subject: string; text: string; 
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center">
 <table role="presentation" width="520" cellspacing="0" cellpadding="0" style="max-width:520px;background:#0b0b10;border:1px solid #23232c;border-radius:20px">
 <tr><td style="padding:28px 32px 8px;font-size:22px;font-weight:700;letter-spacing:-0.03em">OPINI<span style="color:#14f195">ON</span></td></tr>
-<tr><td style="padding:8px 32px 0;font-size:16px;line-height:1.5">Hi ${esc(who)},<br><br>Welcome to <b>OPINION</b>: the live social map where people become the world's sensor network.</td></tr>
+<tr><td style="padding:8px 32px 0;font-size:16px;line-height:1.5">Hi ${esc(who)},<br><br>${i.code ? "Thanks for signing up to <b>OPINION</b>, the live social map of your city." : "Welcome to <b>OPINION</b>: the live social map where people become the world's sensor network."}</td></tr>
 ${codeBlockHtml}
-<tr><td style="padding:22px 32px 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8a8a93">Three things to do first</td></tr>
+<tr><td style="padding:22px 32px 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8a8a93">${i.code ? "After you sign in" : "Three things to do first"}</td></tr>
 <tr><td style="padding:8px 32px 0;font-size:15px;line-height:1.55;color:#d6d6de"><ol style="margin:0;padding-left:20px">${steps.map((s) => `<li style="margin:6px 0">${esc(s)}</li>`).join("")}</ol></td></tr>
 <tr><td style="padding:26px 32px 0"><a href="${esc(i.loginUrl)}" style="display:inline-block;padding:13px 22px;border-radius:12px;background:#14f195;color:#000;font-weight:700;text-decoration:none;font-size:15px">${i.code ? "Enter the code in the app →" : "Open the map →"}</a></td></tr>
 <tr><td style="padding:24px 32px 30px;font-size:12px;line-height:1.5;color:#8a8a93">No passwords here: you sign in with Google or a one-time email code. This is a one-off email, not a newsletter.<br>Reply to this email if you need anything.</td></tr>
