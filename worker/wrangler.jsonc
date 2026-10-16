@@ -28,14 +28,15 @@
   // Earn secrets: npx wrangler secret put EARN_SALT · npx wrangler secret put ADMIN_TOKEN
 
   // Memories (camera photos per hex): npx wrangler r2 bucket create opinion-media
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "opinion-media" }],
+  // Enable R2 in the dashboard (R2 → Get started), then: npx wrangler r2 bucket create opinion-media, and uncomment:
+  // "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "opinion-media" }],
 
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "opinion-db",
       // Create with: npx wrangler d1 create opinion-db  -> paste the returned database_id below.
-      "database_id": "REPLACE_WITH_D1_ID",
+      "database_id": "99e15fce-c875-4e0e-8d2c-41bbdc457105",
       "migrations_dir": "migrations"
     }
   ],

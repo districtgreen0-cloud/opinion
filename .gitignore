@@ -10,3 +10,4 @@ dist/
 # promo video renders (regenerate with: cd promo && npm run video)
 promo/out/
 promo/node_modules
+.secrets.local
