@@ -1,6 +1,6 @@
 import { err, json, readJson, str } from "./http";
 import type { Account } from "./types";
-import { emailConfigured, sendMail, sendWelcome } from "./mail";
+import { emailConfigured, sendMail, sendWelcome, welcomeEmail } from "./mail";
 
 // Secrets / optional vars that wrangler types cannot know about (set via `wrangler secret put` or .dev.vars).
 declare global {
@@ -302,13 +302,17 @@ async function emailStart(req: Request, env: Env): Promise<Response> {
   if (!configured) return json(req, { ok: true, devCode: code }); // DEV_RETURN_CODES=1 only
 
   try {
-    const signup = intent === "signup";
-    await sendMail(env, {
-      to: email,
-      subject: signup ? `${code} · confirm your email to join OPINION` : `${code} is your OPINION sign-in code`,
-      text: `${signup ? "Welcome! Confirm your email with this code to create your OPINION account:" : "Your OPINION sign-in code is"} ${code}\n\nIt expires in 10 minutes. If you didn't request it, ignore this email.`,
-      html: `<p>${signup ? "Welcome! Confirm your email with this code to create your OPINION account:" : "Your OPINION sign-in code is"}</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>It expires in 10 minutes. If you didn't request it, ignore this email.</p>`,
-    });
+    if (intent === "signup") {
+      // sign-up: the welcome letter and the code travel together (one mail, from the login sender that reaches inboxes)
+      await sendMail(env, { to: email, ...(env.MAIL_REPLY_TO ? { replyTo: env.MAIL_REPLY_TO } : {}), ...welcomeEmail({ code, loginUrl: env.APP_URL || "https://app.useopinion.io" }) });
+    } else {
+      await sendMail(env, {
+        to: email,
+        subject: `${code} is your OPINION sign-in code`,
+        text: `Your OPINION sign-in code is ${code}\n\nIt expires in 10 minutes. If you didn't request it, ignore this email.`,
+        html: `<p>Your OPINION sign-in code is</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>It expires in 10 minutes. If you didn't request it, ignore this email.</p>`,
+      });
+    }
   } catch (e) {
     console.error(JSON.stringify({ msg: "email_send_failed", error: String(e) }));
     await env.DB.prepare("DELETE FROM email_codes WHERE email = ?").bind(email).run();
@@ -352,7 +356,8 @@ async function emailVerify(req: Request, env: Env, ctx: ExecutionContext): Promi
   const acct = await upsertAccount(env, { email, viaCode: true });
   if (!acct) return err(req, "account_error", 500);
   const token = await createSession(env, acct.row.id);
-  ctx.waitUntil(sendWelcome(env, acct.row, acct.created)); // first sign-up → welcome mail, never blocks the login
+  // email sign-ups already got the welcome letter together with their code → just record it (Google sign-ups get sendWelcome)
+  if (acct.created) ctx.waitUntil(env.DB.prepare("UPDATE accounts SET welcomed_at = ? WHERE id = ? AND welcomed_at IS NULL").bind(Date.now(), acct.row.id).run());
   return json(req, { account: toAccount(acct.row) }, 200, { "Set-Cookie": cookieHeader(req, token, SESSION_TTL_S) });
 }
 

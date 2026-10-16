@@ -49,22 +49,27 @@ export async function sendMail(env: Env, msg: MailMessage): Promise<boolean> {
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-export interface WelcomeInput { handle: string; name: string | null; loginUrl: string }
+export interface WelcomeInput { handle?: string; name?: string | null; loginUrl: string; code?: string } // code → sign-up mail (welcome + code in one)
 
 /** Short welcome: what OPINION is, three things to do first, one link. Dark, inline-styled, no images. */
 export function welcomeEmail(i: WelcomeInput): { subject: string; text: string; html: string } {
-  const who = i.name?.split(" ")[0] || i.handle;
+  const who = i.name?.split(" ")[0] || i.handle || "there";
+  const codeBlockText = i.code ? [`Your sign-up code: ${i.code}`, `Enter it in the app to create your account. It expires in 10 minutes; if you didn't request it, ignore this email.`, ``] : [];
+  const codeBlockHtml = i.code
+    ? `<tr><td style="padding:22px 32px 0"><div style="border:1px solid #2a2a36;border-radius:14px;padding:16px 20px;background:#0f0f16"><div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8a8a93">Your sign-up code</div><div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:34px;font-weight:700;letter-spacing:8px;color:#fff;margin-top:6px">${esc(i.code)}</div><div style="font-size:12px;color:#8a8a93;margin-top:6px">Enter it in the app to create your account. Expires in 10 minutes.</div></div></td></tr>`
+    : "";
   const steps = [
     "Open the map and find your hex: the ~15,000 m² cell you're standing in.",
     "Drop your first note. You can only post where you stand, so every post carries proof of place.",
     "Pick your handle and avatar, then switch on Earn if you want rewards for what you share.",
   ];
-  const subject = `Welcome to OPINION, ${i.handle}`;
+  const subject = i.code ? `Welcome to OPINION · your code is ${i.code}` : `Welcome to OPINION, ${i.handle ?? ""}`.trim();
   const text = [
     `Hi ${who},`,
     ``,
     `Welcome to OPINION: the live social map where people become the world's sensor network.`,
     ``,
+    ...codeBlockText,
     `Three things to do first:`,
     ...steps.map((s, k) => `${k + 1}. ${s}`),
     ``,
@@ -80,9 +85,10 @@ export function welcomeEmail(i: WelcomeInput): { subject: string; text: string; 
 <table role="presentation" width="520" cellspacing="0" cellpadding="0" style="max-width:520px;background:#0b0b10;border:1px solid #23232c;border-radius:20px">
 <tr><td style="padding:28px 32px 8px;font-size:22px;font-weight:700;letter-spacing:-0.03em">OPINI<span style="color:#14f195">ON</span></td></tr>
 <tr><td style="padding:8px 32px 0;font-size:16px;line-height:1.5">Hi ${esc(who)},<br><br>Welcome to <b>OPINION</b>: the live social map where people become the world's sensor network.</td></tr>
+${codeBlockHtml}
 <tr><td style="padding:22px 32px 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8a8a93">Three things to do first</td></tr>
 <tr><td style="padding:8px 32px 0;font-size:15px;line-height:1.55;color:#d6d6de"><ol style="margin:0;padding-left:20px">${steps.map((s) => `<li style="margin:6px 0">${esc(s)}</li>`).join("")}</ol></td></tr>
-<tr><td style="padding:26px 32px 0"><a href="${esc(i.loginUrl)}" style="display:inline-block;padding:13px 22px;border-radius:12px;background:#14f195;color:#000;font-weight:700;text-decoration:none;font-size:15px">Open the map →</a></td></tr>
+<tr><td style="padding:26px 32px 0"><a href="${esc(i.loginUrl)}" style="display:inline-block;padding:13px 22px;border-radius:12px;background:#14f195;color:#000;font-weight:700;text-decoration:none;font-size:15px">${i.code ? "Enter the code in the app →" : "Open the map →"}</a></td></tr>
 <tr><td style="padding:24px 32px 30px;font-size:12px;line-height:1.5;color:#8a8a93">No passwords here: you sign in with Google or a one-time email code. This is a one-off email, not a newsletter.<br>Reply to this email if you need anything.</td></tr>
 </table>
 <div style="padding:16px;font-size:11px;color:#55555f">OPINION · ${esc(i.loginUrl.replace(/^https?:\/\//, ""))}</div>
