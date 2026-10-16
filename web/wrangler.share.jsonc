@@ -4,8 +4,7 @@
   "name": "opinion-london",
   "main": "share-worker.ts",
   "compatibility_date": "2026-10-01",
-  // app.useopinion.io: Custom Domain (Cloudflare creates the DNS record + certificate on deploy). workers.dev stays on as a fallback.
-  "routes": [{ "pattern": "app.useopinion.io", "custom_domain": true }],
+  // Demo preview only (app.useopinion.io is served by the full worker in ../worker). Reachable at opinion-london.calderabalkan.workers.dev.
   "workers_dev": true,
   "assets": {
     "directory": "./dist",

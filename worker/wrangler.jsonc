@@ -4,6 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
+  // Public app domain (Custom Domain: DNS + certificate managed by Cloudflare). workers.dev stays on as a fallback.
+  "routes": [{ "pattern": "app.useopinion.io", "custom_domain": true }],
+  "workers_dev": true,
 
   // SPA built by ../web (npm run build -> web/dist). API paths hit the Worker first.
   "assets": {
