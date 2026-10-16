@@ -1,6 +1,6 @@
 import { err, json, readJson, str } from "./http";
 import type { Account } from "./types";
-import { emailConfigured, sendMail, sendWelcome, welcomeEmail } from "./mail";
+import { emailConfigured, sendMail, sendWelcome } from "./mail";
 
 // Secrets / optional vars that wrangler types cannot know about (set via `wrangler secret put` or .dev.vars).
 declare global {
@@ -303,8 +303,15 @@ async function emailStart(req: Request, env: Env): Promise<Response> {
 
   try {
     if (intent === "signup") {
-      // sign-up: the welcome letter and the code travel together (one mail, from the login sender that reaches inboxes)
-      await sendMail(env, { to: email, ...(env.MAIL_REPLY_TO ? { replyTo: env.MAIL_REPLY_TO } : {}), ...welcomeEmail({ code, loginUrl: env.APP_URL || "https://app.useopinion.io" }) });
+      // sign-up: code + a one-line welcome. Deliberately minimal (plain text first, no buttons/lists): new sending domains
+      // only reach fresh inboxes with strictly transactional-looking mail. The full welcome lives in the app.
+      const app = (env.APP_URL || "https://app.useopinion.io").replace(/^https?:\/\//, "");
+      await sendMail(env, {
+        to: email,
+        subject: `${code} is your OPINION sign-up code`,
+        text: `Your OPINION sign-up code is ${code}\n\nEnter it in the app to create your account. It expires in 10 minutes.\n\nWelcome aboard. You can only post where you stand, so every post carries proof of place.\n\n${app}`,
+        html: `<p>Your OPINION sign-up code is</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>Enter it in the app to create your account. It expires in 10 minutes.</p><p>Welcome aboard. You can only post where you stand, so every post carries proof of place.</p><p style="color:#777">${app}</p>`,
+      });
     } else {
       await sendMail(env, {
         to: email,
