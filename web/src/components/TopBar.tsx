@@ -59,7 +59,7 @@ export default function TopBar() {
                   className={`mt-1 flex w-full items-center gap-2 rounded-xl border-t border-white/10 px-3 py-2 text-left hover:bg-white/5 ${entered ? '' : 'bg-white/5'}`}
                 >
                   <span className="text-[13px] text-white">🌍 World view</span>
-                  <span className="text-[11px] text-fog">zoom out to the globe</span>
+                  <span className="text-[11px] text-fog">zoom out to the world map</span>
                 </button>
               </div>
             )}

@@ -2,7 +2,7 @@ import { useStore } from '../store'
 import { locate, startTracking, stopTracking } from '../hooks/useGeolocation'
 import { toCell } from '../lib/h3'
 import { fmtUsers, simCount, simZoom, simPoints, type SimSize } from '../lib/sim'
-import { mapHandle } from '../map/Map3D'
+import { mapHandle } from '../map/handle'
 import { km, fmtKm } from '../lib/format'
 import { Icon } from './bits'
 import { availableIn, CITY_COUNTRY } from '../lib/cards'
@@ -15,7 +15,7 @@ export default function MapControls() {
   const flyTo = useStore((s) => s.flyTo)
   const toast = useStore((s) => s.toast)
   const panelOpen = useStore((s) => s.tab !== 'explore' || !!s.selectedCell)
-  const worldView = useStore((s) => !s.entered) // from space: the globe + city picker own the screen
+  const worldView = useStore((s) => !s.entered) // world view: the map + city strip own the screen
   // the mobile event strip sits above the dock → lift the controls over it (desktop unaffected)
   const stripUp = useStore((s) => s.tab === 'explore' && (s.homeFilter === 'event' || s.homeFilter === 'sport') && !s.selectedCell)
   const tallStrip = useStore((s) => s.homeFilter === 'sport')

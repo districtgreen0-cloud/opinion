@@ -30,7 +30,7 @@ type State = {
   setThemePref: (t: ThemePref) => void
   setUi: (u: 'dark' | 'light') => void
   splashDone: boolean
-  /** a city has been picked this session (otherwise the app opens on the globe) */
+  /** a city has been picked this session (otherwise the app opens on the world map) */
   entered: boolean
   pickerOpen: boolean
   mapReady: boolean
@@ -75,7 +75,7 @@ type State = {
   friendLinks: Record<string, FriendLink>
   addFriend: (handle: string, avatar: string) => void
   removeFriend: (handle: string) => void
-  /** World view: the globe turns to show this city (city picker reel) */
+  /** World view: the map pans to this city (city strip) */
   peek: { center: [number, number]; key: number } | null
   peekCity: (center: [number, number]) => void
   setMapReady: () => void
@@ -207,7 +207,7 @@ export const useStore = create<State>((set, get) => ({
   splashDone: false,
   entered: (() => {
     try {
-      return sessionStorage.getItem('opinion:entered') === '1'
+      return localStorage.getItem('opinion:entered') === '1' || sessionStorage.getItem('opinion:entered') === '1'
     } catch {
       return false
     }
@@ -297,6 +297,7 @@ export const useStore = create<State>((set, get) => ({
   enterCity: (id) => {
     try {
       sessionStorage.setItem('opinion:entered', '1')
+      localStorage.setItem('opinion:entered', '1')
     } catch {
       /* storage blocked */
     }
@@ -306,6 +307,7 @@ export const useStore = create<State>((set, get) => ({
   goWorld: () => {
     try {
       sessionStorage.removeItem('opinion:entered')
+      localStorage.removeItem('opinion:entered')
     } catch {
       /* storage blocked */
     }

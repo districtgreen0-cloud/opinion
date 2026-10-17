@@ -12,7 +12,7 @@ import { BeaconLayer } from './BeaconLayer'
 import { STATION_CENTER } from './stationArt'
 import type { Route } from '../lib/route'
 import { simPoints } from '../lib/sim'
-import { cityMajors, loadPitches, iconFor, kindOfId, majorRgb, KIND_RGB as SPORT_RGB, KIND_LABEL, gameWhen, type Major, type Pitch } from '../lib/sports'
+import { useMajors, loadPitches, iconFor, kindOfId, majorRgb, KIND_RGB as SPORT_RGB, KIND_LABEL, gameWhen, type Major, type Pitch } from '../lib/sports'
 import { kindOf, type Comment, type Friend, type Game } from '../lib/types'
 import type { FootprintPlace } from '../lib/timeline'
 
@@ -20,12 +20,12 @@ import type { FootprintPlace } from '../lib/timeline'
 // without this the second map can wait forever on a terminated worker).
 maplibregl.prewarm()
 
-/** The live map, for UI outside the canvas (zoom rail, compass). */
-export const mapHandle: { current: maplibregl.Map | null } = { current: null }
+import { mapHandle } from './handle'
+export { mapHandle }
 
 const IS_PHONE = window.matchMedia('(pointer: coarse)').matches && Math.min(window.innerWidth, window.innerHeight) < 820
-const WORLD_CENTER: [number, number] = [-28, 38] // the Atlantic: London, New York and Serbia in one view
-const WORLD_ZOOM = IS_PHONE ? 0.9 : 1.75
+const WORLD_CENTER: [number, number] = [-40, 44] // the Atlantic: London, New York, SF and Serbia in one view
+const WORLD_ZOOM = IS_PHONE ? 1.1 : 2.1
 
 const KIND_RGB: Record<HomeFilter, [number, number, number]> = {
   all: [255, 255, 255],
@@ -62,8 +62,8 @@ function applyLighting(map: maplibregl.Map, l: MapLook) {
   set('places-dot', 'circle-color', p.placeDot)
   set('places-dot', 'circle-stroke-color', halo)
   for (const id of ['district-labels', 'street-names-major', 'street-names-minor', 'places']) set(id, 'text-halo-color', halo)
-  // globe: a violet atmosphere from space that fades out before street level
-  map.setSky({ 'sky-color': p.sky, 'horizon-color': p.horizon, 'fog-color': p.fog, 'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.35, 'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 6, 0.8, 9, 0] as never })
+  // flat map: sky + fog only at the tilted street-level horizon
+  map.setSky({ 'sky-color': p.sky, 'horizon-color': p.horizon, 'fog-color': p.fog, 'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.35 })
   map.setLight({ anchor: 'map', color: p.light, intensity: 0.4, position: [1.4, 210, 35] })
 }
 
@@ -96,7 +96,7 @@ export default function Map3D() {
   const sim = useStore((s) => s.sim)
   const simData = useMemo(() => (sim ? simPoints(city, sim) : null), [sim, city.id])
   const sportOn = homeFilter === 'sport'
-  const majors = useMemo(() => cityMajors(city.id), [city.id])
+  const majors = useMajors(city.id)
   const games = useStore((s) => s.games[city.id])
   const [pitches, setPitches] = useState<Record<string, Pitch[]> | null>(null)
   useEffect(() => {
@@ -118,12 +118,13 @@ export default function Map3D() {
     const map = new maplibregl.Map({
       container: el.current!,
       style: buildStyle(useStore.getState().ui === 'light' ? 'day' : useStore.getState().lighting),
-      // first visit of the session: the whole world, then the city picker flies you in
+      // first visit: the whole world (flat), then the city strip flies you in; returning: straight into your city
       center: useStore.getState().entered ? city.center : WORLD_CENTER,
-      zoom: useStore.getState().entered ? 12.4 : WORLD_ZOOM,
-      pitch: 0,
-      bearing: 0,
+      zoom: useStore.getState().entered ? city.zoom : WORLD_ZOOM,
+      pitch: useStore.getState().entered ? 62 : 0,
+      bearing: useStore.getState().entered ? city.bearing : 0,
       maxPitch: 78,
+      fadeDuration: 150,
       attributionControl: { compact: true },
       // phones: cap resolution at 2× and skip MSAA — a 3× canvas with three render systems can exceed iOS GPU memory
       pixelRatio: Math.min(window.devicePixelRatio || 1, IS_PHONE ? 2 : 3),
@@ -137,35 +138,13 @@ export default function Map3D() {
     const beacons = new BeaconLayer()
     beaconRef.current = beacons
 
-    // Globe from space, flat 3D city up close. MapLibre's globe already renders flat past z≈12, so swapping
-    // projections there is invisible — and deck.gl (which can't draw on MapLibre's globe) only runs in mercator.
-    let overlayOn = false
-    const syncProjection = () => {
-      const z = map.getZoom()
-      const globe = map.getProjection()?.type === 'globe'
-      // while simulating users, stay flat (and keep deck.gl attached) down to city-wide zoom so the whole town shows
-      const sim = !!useStore.getState().sim
-      const HI = sim ? 9.2 : 12.2
-      const LO = sim ? 8.8 : 11.6
-      if (z >= HI) {
-        if (globe) map.setProjection({ type: 'mercator' })
-        if (!overlayOn) map.addControl(overlay) // also on a load that starts in a city (already mercator)
-        overlayOn = true
-      } else if (z < LO && (!globe || overlayOn)) {
-        if (overlayOn) map.removeControl(overlay)
-        overlayOn = false
-        map.setProjection({ type: 'globe' })
-      }
-    }
-    map.on('style.load', () => map.setProjection({ type: map.getZoom() >= 12.2 ? 'mercator' : 'globe' }))
+    // Flat (mercator) everywhere: deck.gl draws at every zoom, no projection swaps, no atmosphere pass.
     const worldClass = () => map.getContainer().classList.toggle('world', map.getZoom() < 10.5)
     map.on('zoom', worldClass)
     worldClass()
     map.on('load', () => {
-      syncProjection()
-      map.on('zoom', syncProjection)
-      useStore.subscribe((st, prev) => st.sim !== prev.sim && syncProjection())
-      // navigation route (MapLibre layers so it draws at every zoom/projection)
+      map.addControl(overlay)
+      // navigation route (MapLibre layers so it draws at every zoom)
       map.addSource('nav-route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
       map.addLayer({ id: 'nav-casing', type: 'line', source: 'nav-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#000', 'line-opacity': 0.45, 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 6, 18, 16] } })
       map.addLayer({ id: 'nav-line', type: 'line', source: 'nav-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#14f195', 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 3, 18, 9] } })
@@ -256,21 +235,15 @@ export default function Map3D() {
     const fromSpace = map.getZoom() < 8
     flownCity.current = city.id
     map.stop()
-    if (fromSpace && !still) {
-      // cinematic entry: swing the globe round to the city, dive through the atmosphere, tilt into the streets
-      map.easeTo({ center: city.center, zoom: Math.max(map.getZoom(), 2.6), duration: 1600, easing: (t) => t * (2 - t) })
-      map.once('moveend', () =>
-        map.flyTo({ center: city.center, zoom: city.zoom, pitch: 64, bearing: city.bearing, duration: 6200, curve: 1.9, speed: 0.6, essential: true }),
-      )
-      return
-    }
+    // cinematic entry: one arc from the world map down into the tilted streets
     map.flyTo({
       center: city.center,
       zoom: city.zoom,
       pitch: 62,
       bearing: city.bearing,
-      duration: still ? 0 : 4200,
-      curve: 1.6,
+      duration: still ? 0 : fromSpace ? 5200 : 4200,
+      curve: fromSpace ? 1.7 : 1.6,
+      speed: fromSpace ? 0.7 : 1.2,
       essential: true,
     })
   }, [city, splashDone, data, ready, entered])
@@ -323,7 +296,7 @@ export default function Map3D() {
     map.fitBounds(b, { padding: { top: 150, bottom: 230, left: 50, right: 50 }, pitch: 45, duration: 1400, maxZoom: 16.5 })
   }, [nav?.route, nav?.simulate])
 
-  // ── World view: the picker reel turns the globe to the city on show
+  // ── World view: the city strip pans the map to the city on show
   const peek = useStore((s) => s.peek)
   useEffect(() => {
     const map = mapRef.current
@@ -331,32 +304,7 @@ export default function Map3D() {
     map.easeTo({ center: peek.center, zoom: Math.max(map.getZoom(), WORLD_ZOOM + 0.5), duration: 1400, easing: (t) => 1 - Math.pow(1 - t, 3) })
   }, [peek, ready, entered])
 
-  // ── World view: the globe turns slowly; it pauses while you drag it
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready || entered || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let raf = 0
-    let pausedUntil = 0
-    const pause = () => (pausedUntil = performance.now() + 5000)
-    const spin = () => {
-      raf = requestAnimationFrame(spin)
-      if (performance.now() < pausedUntil || map.isMoving() || map.getZoom() > 5 || useStore.getState().pickerOpen) return
-      const c = map.getCenter()
-      map.setCenter([c.lng + 0.035, c.lat])
-    }
-    map.on('mousedown', pause)
-    map.on('touchstart', pause)
-    map.on('wheel', pause)
-    raf = requestAnimationFrame(spin)
-    return () => {
-      cancelAnimationFrame(raf)
-      map.off('mousedown', pause)
-      map.off('touchstart', pause)
-      map.off('wheel', pause)
-    }
-  }, [ready, entered])
-
-  // ── glowing city beacons on the globe (hidden at street level by the .world class)
+  // ── glowing city beacons on the world map (hidden at street level by the .world class)
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return

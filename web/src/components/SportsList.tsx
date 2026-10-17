@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { toCell } from '../lib/h3'
 import type { Game } from '../lib/types'
-import { cityMajors, gameWhen, KIND_LABEL, kindOfId, majorRgb, SPORT_EMOJI, type Major } from '../lib/sports'
+import { useMajors, gameWhen, KIND_LABEL, kindOfId, majorRgb, SPORT_EMOJI, type Major } from '../lib/sports'
 
 const EMPTY: Game[] = []
 
@@ -78,7 +78,8 @@ function GameCard({ g, compact }: { g: Game; compact?: boolean }) {
 export function SportsRail() {
   const games = useCityGames()
   const city = useStore((s) => s.city)
-  const venues = useMemo(() => cityMajors(city.id).filter((m) => m.n && m.k <= 1).slice(0, 24), [city.id])
+  const majors = useMajors(city.id)
+  const venues = useMemo(() => majors.filter((m) => m.n && m.k <= 1).slice(0, 24), [majors])
   return (
     <div className="glass scroll-thin flex-1 overflow-y-auto rounded-[20px] p-2">
       <div className="px-2 pt-1 pb-1.5 font-mono text-[10px] tracking-[0.14em] text-fog uppercase">Home games · next 14 days</div>

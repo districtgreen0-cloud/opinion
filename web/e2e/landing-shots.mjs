@@ -59,7 +59,7 @@ await phone('phone-profile', 'ldn', async (m) => { await m.locator('.bubble').fi
   const m = await (await w.newContext({ ...devices['iPhone 15'] })).newPage()
   await m.addInitScript(() => sessionStorage.setItem('opinion:splash', '1'))
   await m.goto(URL_); await m.getByRole('dialog', { name: 'Choose your city' }).waitFor({ timeout: 120000 }); await m.waitForTimeout(2800)
-  await m.screenshot({ path: OUT + 'phone-city-reel.png' }); console.log('✓ phone-city-reel')
+  await m.screenshot({ path: OUT + 'phone-city-strip.png' }); console.log('✓ phone-city-reel')
   await m.close()
 }
 await w.close()

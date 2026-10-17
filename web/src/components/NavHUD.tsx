@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import gsap from 'gsap'
-import * as maplibregl from 'maplibre-gl'
 import { useStore } from '../store'
 import { startTracking } from '../hooks/useGeolocation'
 import { bearing as bearingTo, fetchRoute, fmtDist, fmtDur, kmh, mapLinks, meters, pointAt, progress, reversePlace, viaRoads, type LngLat, type NavMode } from '../lib/route'
-import { mapHandle } from '../map/Map3D'
+import { mapHandle } from '../map/handle'
 import { reduced } from './bits'
 
 const SIM_SPEED: Record<NavMode, number> = { foot: 1.4 * 6, bike: 4.5 * 5, car: 11 * 4 } // m/s, sped up for demos
@@ -131,8 +130,9 @@ export default function NavHUD() {
     const map = mapHandle.current
     if (!map || !route) return
     s.patchNav({ follow: false })
-    const b = route.coords.reduce((bb, c) => bb.extend(c), new maplibregl.LngLatBounds(route.coords[0]!, route.coords[0]!))
-    map.fitBounds(b, { padding: { top: 150, bottom: 260, left: 50, right: 50 }, pitch: 40, duration: 1200, maxZoom: 16.5 })
+    const lngs = route.coords.map((c) => c[0])
+    const lats = route.coords.map((c) => c[1])
+    map.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: { top: 150, bottom: 260, left: 50, right: 50 }, pitch: 40, duration: 1200, maxZoom: 16.5 })
   }
   const links = mapLinks(nav.dest, nav.mode)
 

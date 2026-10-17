@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useStore } from '../store'
-import { mapHandle } from '../map/Map3D'
+import { mapHandle } from '../map/handle'
 import { reduced } from './bits'
 
 const PX_PER_ZOOM = 56 // tape speed: one zoom level = 56px of ruler

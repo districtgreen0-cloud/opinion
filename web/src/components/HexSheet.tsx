@@ -319,7 +319,10 @@ export default function HexSheet() {
           busy={busy}
           onClose={() => setCamera(false)}
           onSave={async (img) => {
-            if (!pos) return
+            if (!pos) {
+              setCamera(false)
+              return setErr('Turn on location first (📍), so the memory is pinned to where you stand.')
+            }
             setBusy(true)
             const r = await saveMemory({ cell, lat: pos.lat, lng: pos.lng, handle: me.handle, avatar: me.avatar, ...img })
             setBusy(false)

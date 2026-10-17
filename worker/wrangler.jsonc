@@ -30,9 +30,8 @@
   "triggers": { "crons": ["17 * * * *"] },
   // Earn secrets: npx wrangler secret put EARN_SALT · npx wrangler secret put ADMIN_TOKEN
 
-  // Memories (camera photos per hex): npx wrangler r2 bucket create opinion-media
-  // Enable R2 in the dashboard (R2 → Get started), then: npx wrangler r2 bucket create opinion-media, and uncomment:
-  // "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "opinion-media" }],
+  // Memories (camera photos per hex) live in the R2 bucket "opinion" (created in the dashboard 2026-10-16)
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "opinion" }],
 
   "d1_databases": [
     {

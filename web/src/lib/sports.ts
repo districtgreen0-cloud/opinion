@@ -1,4 +1,4 @@
-import majorsData from '../data/sport-majors.json'
+import { useEffect, useState } from 'react'
 import type { City, Game } from './types'
 
 /**
@@ -45,8 +45,23 @@ export const majorRgb = (m: Major): [number, number, number] => (m.s !== 10 ? KI
 
 export const SPORT_EMOJI: Record<Game['sport'], string> = { soccer: '⚽', basketball: '🏀', football: '🏈', baseball: '⚾', hockey: '🏒', rugby: '🏉', tennis: '🎾', other: '🏟️' }
 
-const MAJORS = (majorsData as unknown as { cities: Record<string, Major[]> }).cities
-export const cityMajors = (id: City['id']): Major[] => MAJORS[id] ?? []
+let MAJORS: Record<string, Major[]> | null = null
+let majorsP: Promise<Record<string, Major[]>> | null = null
+/** Stadiums / arenas per city (244 KB): fetched once, after the first paint. */
+export function loadMajors(): Promise<Record<string, Major[]>> {
+  majorsP ??= import('../data/sport-majors.json').then((m) => (MAJORS = (m.default as unknown as { cities: Record<string, Major[]> }).cities))
+  return majorsP
+}
+/** Synchronous view of the venues: empty until loadMajors() resolves. */
+export const cityMajors = (id: City['id']): Major[] => MAJORS?.[id] ?? []
+/** React: the city's venues, re-rendering once they arrive. */
+export function useMajors(id: City['id']): Major[] {
+  const [, bump] = useState(0)
+  useEffect(() => {
+    if (!MAJORS) loadMajors().then(() => bump((v) => v + 1), () => {})
+  }, [])
+  return cityMajors(id)
+}
 
 let pitchesP: Promise<Record<string, Pitch[]>> | null = null
 /** ~100–300 KB per city of courts — loaded only when the Sports tab first opens */

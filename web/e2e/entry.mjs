@@ -1,4 +1,4 @@
-// Entry flow: splash globe → world globe → city picker → cinematic fly-in. Usage: node e2e/entry.mjs [url]
+// Entry flow: splash globe → flat world map → city strip → cinematic fly-in. Usage: node e2e/entry.mjs [url]
 import { chromium, webkit, devices } from 'playwright-core'
 const URL_ = process.argv[2] ?? 'http://localhost:4701'
 const OUT = new URL('./shots/', import.meta.url).pathname
@@ -13,12 +13,16 @@ await p.waitForTimeout(1500); await p.screenshot({ path: OUT + 'entry-2-splash.p
 await p.waitForFunction(() => !document.querySelector('.sp-text'), null, { timeout: 60000 })
 R.projection = await p.evaluate(() => JSON.stringify(window.__map.getProjection?.()))
 R.worldZoom = await p.evaluate(() => +window.__map.getZoom().toFixed(2))
-await p.waitForTimeout(1000); await p.screenshot({ path: OUT + 'entry-3-globe.png' })
+await p.waitForTimeout(1000); await p.screenshot({ path: OUT + 'entry-3-world.png' })
 await p.getByRole('dialog', { name: 'Choose your city' }).waitFor({ timeout: 15000 })
 await p.waitForTimeout(1200); await p.screenshot({ path: OUT + 'entry-4-picker.png' })
-R.cards = await p.locator('.cp-card').count()
+R.chips = await p.locator('.cp-chip').count()
+R.selected = (await p.locator('.cp-chip[aria-selected=true]').innerText()).trim()
+await p.locator('.cp-chip', { hasText: 'Beograd' }).click(); await p.waitForTimeout(1600)
+R.peekCenter = await p.evaluate(() => { const c = window.__map.getCenter(); return [+c.lng.toFixed(1), +c.lat.toFixed(1)] })
 R.label = (await p.getByRole('button', { name: /World/ }).first().innerText()).trim()
-await p.locator('.cp-card', { hasText: 'London' }).click()
+await p.locator('.cp-chip', { hasText: 'London' }).click(); await p.waitForTimeout(300)
+await p.getByRole('button', { name: 'Fly in →' }).click()
 await p.waitForTimeout(2200); await p.screenshot({ path: OUT + 'entry-5-flying.png' })
 await p.waitForTimeout(3000); await p.screenshot({ path: OUT + 'entry-6-dive.png' })
 await p.waitForTimeout(5500); await p.screenshot({ path: OUT + 'entry-7-city.png' })
@@ -32,7 +36,7 @@ m.on('pageerror', (e) => errs.push('iphone ' + e.message))
 await m.goto(URL_); await m.waitForTimeout(2500); await m.screenshot({ path: OUT + 'entry-iphone-splash.png' })
 await m.getByRole('dialog', { name: 'Choose your city' }).waitFor({ timeout: 90000 }); await m.waitForTimeout(1500)
 await m.screenshot({ path: OUT + 'entry-iphone-picker.png' })
-await m.locator('.cp-card', { hasText: 'Beograd' }).click(); await m.waitForTimeout(11000)
+await m.locator('.cp-chip', { hasText: 'Beograd' }).click(); await m.waitForTimeout(400); await m.locator('.cp-chip', { hasText: 'Beograd' }).click(); await m.waitForTimeout(10000)
 await m.screenshot({ path: OUT + 'entry-iphone-city.png' })
 console.log('iphone zoom', await m.evaluate(() => window.__map.getZoom().toFixed(2)), 'errs', JSON.stringify(errs))
 await w.close()

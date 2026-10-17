@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useStore } from '../store'
-import { mapHandle } from '../map/Map3D'
+import { mapHandle } from '../map/handle'
 import { fmtDist, meters, searchPlaces, type LngLat, type NavMode, type Place } from '../lib/route'
 import { reduced } from './bits'
 

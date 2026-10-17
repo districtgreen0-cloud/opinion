@@ -7,7 +7,6 @@ import { useSportsFeed } from './hooks/useSportsFeed'
 import { useTheme } from './hooks/useTheme'
 import { useEarn } from './hooks/useEarn'
 import EarnSheet, { BusyPrompt } from './components/EarnSheet'
-import Map3D from './map/Map3D'
 import Splash from './components/Splash'
 import TopBar from './components/TopBar'
 import Dock from './components/Dock'
@@ -29,6 +28,7 @@ import LiteMode, { hasWebGL2 } from './components/LiteMode'
 
 const WEBGL = hasWebGL2()
 
+const Map3D = lazy(() => import('./map/Map3D'))
 const EventsPanel = lazy(() => import('./components/EventsPanel'))
 const CrewsPanel = lazy(() => import('./components/CrewsPanel'))
 const MarketPanel = lazy(() => import('./components/MarketPanel'))
@@ -60,7 +60,9 @@ export default function App() {
 
   return (
     <main className="relative h-full w-full overflow-hidden bg-black">
-      <Map3D />
+      <Suspense fallback={null}>
+        <Map3D />
+      </Suspense>
       {/* vignette: the city dissolves into black at the edges */}
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(120%_90%_at_50%_45%,transparent_55%,rgba(0,0,0,.85))]" />
       <div className="pointer-events-none absolute inset-0 z-10">
