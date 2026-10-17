@@ -22,6 +22,7 @@ import AuthModal from './components/AuthModal'
 import CityPicker from './components/CityPicker'
 import ZoomRail from './components/ZoomRail'
 import NavHUD from './components/NavHUD'
+import NavSearch from './components/NavSearch'
 import ProfileCard from './components/Profile'
 import { useAuthBoot } from './hooks/useAuthBoot'
 import LiteMode, { hasWebGL2 } from './components/LiteMode'
@@ -86,6 +87,7 @@ export default function App() {
       <Toasts />
       <CityPicker />
       <EarnSheet />
+      <NavSearch />
       <ProfileCard />
       <AuthModal />
       <Splash />

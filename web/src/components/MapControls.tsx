@@ -14,8 +14,6 @@ export default function MapControls() {
   const arm = useStore((s) => s.armTeleport)
   const flyTo = useStore((s) => s.flyTo)
   const toast = useStore((s) => s.toast)
-  const showSignals = useStore((s) => s.showSignals)
-  const toggleSignals = useStore((s) => s.toggleSignals)
   const panelOpen = useStore((s) => s.tab !== 'explore' || !!s.selectedCell)
   const worldView = useStore((s) => !s.entered) // from space: the globe + city picker own the screen
   // the mobile event strip sits above the dock → lift the controls over it (desktop unaffected)
@@ -46,12 +44,13 @@ export default function MapControls() {
       stopTracking()
       return toast('Location off')
     }
+    toast('Locating you…')
     const ok = await startTracking()
-    const p = useStore.getState().pos
-    if (ok && p) {
-      toast('Location on · live GPS', 'mint')
-      flyTo(p.lng, p.lat, 16.8)
-    } else toast(useStore.getState().geoStatus === 'denied' ? 'Location blocked · allow it for this site in your browser settings' : 'Location unavailable on this device', 'ember')
+    const st = useStore.getState()
+    if (ok && st.pos) {
+      toast(`Location on · ${st.geoAcc ? `±${st.geoAcc} m` : 'live'}`, 'mint')
+      flyTo(st.pos.lng, st.pos.lat, 16.8)
+    } else toast(st.geoError ?? 'Location unavailable right now', 'ember')
   }
   // 📷 straight to the camera in the hex you're standing in
   const camera = async () => {
@@ -105,6 +104,9 @@ export default function MapControls() {
         </div>
       )}
       <div className="flex items-center gap-2">
+        <button onClick={() => useStore.getState().setNavSearch(true)} className="btn-black grid h-11 w-11 place-items-center !rounded-2xl !p-0 text-[18px]" aria-label="Navigate: where to?" title="Where to?">
+          🧭
+        </button>
         <button onClick={camera} className="btn-black grid h-11 w-11 place-items-center !rounded-2xl !p-0" aria-label="Capture a memory here" title="Memory · camera">
           <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M4 8h3l2-2.5h6L17 8h3v11H4z" />
@@ -136,18 +138,6 @@ export default function MapControls() {
         >
           💳 {availableIn(CITY_COUNTRY[city.id].code).length || 'Check'} cards
         </button>
-      <button
-        onClick={() => {
-          toggleSignals()
-          toast(showSignals ? 'Traffic lights hidden' : 'Traffic lights on · zoom in to see them (phases simulated)')
-        }}
-        className={`btn-black flex h-11 items-center gap-2 !rounded-2xl !py-0 text-[12px] ${showSignals ? '' : 'opacity-50'}`}
-        aria-pressed={showSignals}
-        aria-label="Traffic lights"
-        title="Traffic-light positions © OpenStreetMap · phases simulated (no live timing is published)"
-      >
-        🚦 {showSignals ? 'Lights on' : 'Lights off'}
-      </button>
       <button
         onClick={() => arm(!armed)}
         className={`btn-black flex h-11 items-center gap-2 !rounded-2xl !py-0 text-[12px] ${armed ? '!border-white/50' : ''}`}

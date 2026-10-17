@@ -4,7 +4,7 @@
  */
 export type NavMode = 'foot' | 'bike' | 'car'
 export type LngLat = [number, number]
-export type Step = { text: string; icon: string; dist: number; at: LngLat; startAlong: number }
+export type Step = { text: string; icon: string; dist: number; duration: number; name: string; at: LngLat; startAlong: number }
 export type Route = { coords: LngLat[]; cum: number[]; distance: number; duration: number; steps: Step[]; mode: NavMode }
 
 const PROFILE: Record<NavMode, string> = { foot: 'routed-foot', bike: 'routed-bike', car: 'routed-car' }
@@ -26,14 +26,17 @@ export function bearing(a: LngLat, b: LngLat) {
   return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360
 }
 
-type OsrmStep = { distance: number; name: string; maneuver: { type: string; modifier?: string; location: LngLat; exit?: number } }
+type OsrmStep = { distance: number; duration: number; name: string; ref?: string; destinations?: string; maneuver: { type: string; modifier?: string; location: LngLat; exit?: number } }
+/** "A4 · Great West Road" — road number + name when OSRM knows both */
+const roadName = (s: OsrmStep) => [s.ref, s.name].filter(Boolean).join(' · ') || (s.destinations ? `towards ${s.destinations}` : '')
 
 const ARROW: Record<string, string> = { left: '←', 'slight left': '↖', 'sharp left': '↰', right: '→', 'slight right': '↗', 'sharp right': '↱', straight: '↑', uturn: '↶' }
 function sentence(s: OsrmStep, i: number, last: boolean): { text: string; icon: string } {
   const m = s.maneuver
-  const onto = s.name ? ` onto ${s.name}` : ''
+  const rn = roadName(s)
+  const onto = rn ? ` onto ${rn}` : ''
   const dir = m.modifier ?? 'straight'
-  if (i === 0) return { text: `Head out${s.name ? ` on ${s.name}` : ''}`, icon: '↑' }
+  if (i === 0) return { text: `Head out${rn ? ` on ${rn}` : ''}`, icon: '↑' }
   if (last || m.type === 'arrive') return { text: 'Arrive at your destination', icon: '◎' }
   if (m.type === 'roundabout' || m.type === 'rotary') return { text: `At the roundabout take exit ${m.exit ?? 1}${onto}`, icon: '⟳' }
   if (dir === 'uturn') return { text: `Make a U-turn${onto}`, icon: ARROW.uturn! }
@@ -67,7 +70,7 @@ export async function fetchRoute(from: LngLat, to: LngLat, mode: NavMode, signal
       if (dd > bestD + 400) break
     }
     k = bestJ
-    return { ...sentence(s, i, i === raw.length - 1), dist: s.distance, at: s.maneuver.location, startAlong: cum[bestJ]! }
+    return { ...sentence(s, i, i === raw.length - 1), dist: s.distance, duration: s.duration, name: roadName(s), at: s.maneuver.location, startAlong: cum[bestJ]! }
   })
   return { coords, cum, distance: best.distance, duration: best.duration, steps, mode }
 }
@@ -109,3 +112,42 @@ export function pointAt(route: Route, along: number): LngLat {
 
 export const fmtDist = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 1)} km` : `${Math.max(5, Math.round(m / 10) * 10)} m`)
 export const fmtDur = (s: number) => (s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.round((s % 3600) / 60)} min` : `${Math.max(1, Math.round(s / 60))} min`)
+
+/** Main roads of a route, longest first (for a "via …" line). */
+export function viaRoads(route: Route, n = 3): string[] {
+  const by = new Map<string, number>()
+  for (const st of route.steps) if (st.name) by.set(st.name, (by.get(st.name) ?? 0) + st.dist)
+  return [...by].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k]) => k)
+}
+
+// ── places: search + reverse lookup (Photon, OpenStreetMap data, free / fair use)
+export type Place = { name: string; detail: string; at: LngLat }
+type PhotonFeature = { geometry: { coordinates: LngLat }; properties: { name?: string; street?: string; housenumber?: string; city?: string; district?: string; state?: string; country?: string; osm_value?: string; postcode?: string } }
+const placeOf = (f: PhotonFeature): Place => {
+  const p = f.properties
+  const name = p.name || [p.street, p.housenumber].filter(Boolean).join(' ') || p.city || 'Unnamed place'
+  const detail = [p.street && p.name ? [p.street, p.housenumber].filter(Boolean).join(' ') : null, p.district, p.city, p.country].filter(Boolean).join(', ')
+  return { name, detail, at: f.geometry.coordinates }
+}
+export async function searchPlaces(q: string, near: LngLat, signal?: AbortSignal): Promise<Place[]> {
+  const u = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=7&lat=${near[1]}&lon=${near[0]}&lang=en`
+  const r = await fetch(u, { signal })
+  if (!r.ok) throw new Error('search_http_' + r.status)
+  const d = (await r.json()) as { features?: PhotonFeature[] }
+  return (d.features ?? []).map(placeOf)
+}
+export async function reversePlace(at: LngLat): Promise<Place | null> {
+  try {
+    const r = await fetch(`https://photon.komoot.io/reverse?lon=${at[0]}&lat=${at[1]}&lang=en`)
+    const d = (await r.json()) as { features?: PhotonFeature[] }
+    return d.features?.[0] ? placeOf(d.features[0]) : null
+  } catch {
+    return null
+  }
+}
+export const kmh = (ms: number) => `${Math.round(ms * 3.6)} km/h`
+/** Deep links to the phone's own maps app (escape hatch for long drives). */
+export const mapLinks = (dest: LngLat, mode: NavMode) => ({
+  google: `https://www.google.com/maps/dir/?api=1&destination=${dest[1]},${dest[0]}&travelmode=${mode === 'car' ? 'driving' : mode === 'bike' ? 'bicycling' : 'walking'}`,
+  apple: `https://maps.apple.com/?daddr=${dest[1]},${dest[0]}&dirflg=${mode === 'car' ? 'd' : mode === 'bike' ? 'c' : 'w'}`,
+})

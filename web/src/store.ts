@@ -40,6 +40,10 @@ type State = {
   /** live device location (continuous GPS while on) */
   tracking: boolean
   geoAcc: number | null
+  geoError: string | null // why the last location attempt failed (human text)
+  setGeoError: (m: string | null) => void
+  geoSpeed: number | null // m/s from GPS while moving
+  setGeoSpeed: (v: number | null) => void
   heading: number | null
   setHeading: (d: number | null) => void
   setTracking: (v: boolean) => void
@@ -51,6 +55,9 @@ type State = {
   cameraRequest: number
   requestCamera: () => void
   nav: Nav | null
+  /** destination search panel ("Where to?") */
+  navSearch: boolean
+  setNavSearch: (v: boolean) => void
   startNav: (dest: LngLat, name: string, mode?: NavMode) => void
   patchNav: (p: Partial<Nav>) => void
   endNav: () => void
@@ -101,12 +108,10 @@ type State = {
   epochs: ReturnType<typeof epochs>
   toasts: Toast[]
   footprint: Footprint | null
-  showSignals: boolean
   account: Account | null
   authOpen: boolean
   setAuthOpen: (v: boolean) => void
   setAccount: (a: Account | null) => void
-  toggleSignals: () => void
   showFootprint: boolean
 
   setTab: (t: Tab) => void
@@ -213,6 +218,10 @@ export const useStore = create<State>((set, get) => ({
   setSim: (sim) => set({ sim }),
   tracking: load('tracking', false),
   geoAcc: null,
+  geoError: null,
+  setGeoError: (geoError) => set({ geoError }),
+  geoSpeed: null,
+  setGeoSpeed: (geoSpeed) => set({ geoSpeed }),
   heading: null,
   setHeading: (heading) => set({ heading }),
   setTracking: (tracking) => {
@@ -225,8 +234,10 @@ export const useStore = create<State>((set, get) => ({
   cameraRequest: 0,
   requestCamera: () => set({ cameraRequest: Date.now() }),
   nav: null,
+  navSearch: false,
+  setNavSearch: (navSearch) => set({ navSearch }),
   startNav: (dest, name, mode) =>
-    set({ nav: { dest, name, mode: mode ?? load<NavMode>('navMode', 'foot'), route: null, status: 'routing', follow: true, simulate: false, key: Date.now() }, selectedCell: null, tab: 'explore' }),
+    set({ nav: { dest, name, mode: mode ?? load<NavMode>('navMode', 'foot'), route: null, status: 'routing', follow: true, simulate: false, key: Date.now() }, selectedCell: null, tab: 'explore', navSearch: false }),
   patchNav: (p) => {
     const nav = get().nav
     if (!nav) return
@@ -326,7 +337,6 @@ export const useStore = create<State>((set, get) => ({
   toasts: [],
   footprint: migrateFootprint(load<Footprint | null>('footprint', null)),
   showFootprint: load('showFootprint', true),
-  showSignals: load('showSignals', true),
   account: load<Account | null>('account', null), // demo keeps it locally; live mode re-reads /api/auth/me
   authOpen: false,
   setAuthOpen: (authOpen) => set({ authOpen }),
@@ -334,11 +344,6 @@ export const useStore = create<State>((set, get) => ({
     save('account', account)
     set({ account, authOpen: false })
     if (account) get().setMe({ handle: account.handle, avatar: account.avatar })
-  },
-  toggleSignals: () => {
-    const v = !get().showSignals
-    save('showSignals', v)
-    set({ showSignals: v })
   },
 
   setTab: (tab) => set({ tab }),

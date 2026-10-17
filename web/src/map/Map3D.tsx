@@ -10,7 +10,6 @@ import { toCell, cellCenter } from '../lib/h3'
 import { avatarSrc, avatarColor } from '../lib/avatars'
 import { BeaconLayer } from './BeaconLayer'
 import { STATION_CENTER } from './stationArt'
-import { citySignals, phaseAt, PHASE_RGB, type Signal } from '../lib/signals'
 import type { Route } from '../lib/route'
 import { simPoints } from '../lib/sim'
 import { cityMajors, loadPitches, iconFor, kindOfId, majorRgb, KIND_RGB as SPORT_RGB, KIND_LABEL, gameWhen, type Major, type Pitch } from '../lib/sports'
@@ -91,11 +90,7 @@ export default function Map3D() {
   const footprint = useStore((s) => s.footprint)
   const showFootprint = useStore((s) => s.showFootprint)
   const homeFilter = useStore((s) => s.homeFilter)
-  const showSignals = useStore((s) => s.showSignals)
   const [zoom, setZoom] = useState(0)
-  const [sigTick, setSigTick] = useState(0)
-  const signals = useMemo(() => citySignals(city.id), [city.id])
-  const signalsOn = showSignals && zoom >= 14.8
   const friends = useFriendsDrift(city.id)
   const data = useMemo(() => cityData(city), [city])
   const sim = useStore((s) => s.sim)
@@ -403,13 +398,6 @@ export default function Map3D() {
     mapRef.current.flyTo({ center: [flyTarget.lng, flyTarget.lat], zoom: flyTarget.zoom ?? 16.4, pitch: 62, duration: 1800, essential: true })
   }, [flyTarget])
 
-  // traffic-light clock: 1 Hz, only while the lights are on screen
-  useEffect(() => {
-    if (!signalsOn || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const id = setInterval(() => setSigTick(Math.floor(Date.now() / 1000)), 1000)
-    return () => clearInterval(id)
-  }, [signalsOn])
-
   // ── deck.gl layers
   const myCell = pos ? toCell(pos.lat, pos.lng) : null
   const commentCounts = useMemo(() => {
@@ -605,34 +593,6 @@ export default function Map3D() {
           billboard: true,
           getPixelOffset: [0, -2],
         }),
-        // 🚦 real signal positions (OSM), simulated phases
-        signalsOn &&
-          new ScatterplotLayer<Signal>({
-            id: 'signal-glow',
-            data: signals,
-            getPosition: (d) => [d.lng, d.lat, 6],
-            radiusUnits: 'pixels',
-            getRadius: zoom >= 16.5 ? 11 : 8,
-            getFillColor: (d) => [...PHASE_RGB[phaseAt(d, sigTick || Date.now() / 1000)], 60] as [number, number, number, number],
-            updateTriggers: { getFillColor: sigTick, getRadius: zoom >= 16.5 },
-            billboard: true,
-            parameters: { depthCompare: 'always', depthWriteEnabled: false },
-          }),
-        signalsOn &&
-          new ScatterplotLayer<Signal>({
-            id: 'signal-core',
-            data: signals,
-            getPosition: (d) => [d.lng, d.lat, 6],
-            radiusUnits: 'pixels',
-            getRadius: zoom >= 16.5 ? 3.6 : 2.6,
-            stroked: true,
-            getLineColor: [0, 0, 0, 220],
-            lineWidthMinPixels: 1,
-            getFillColor: (d) => [...PHASE_RGB[phaseAt(d, sigTick || Date.now() / 1000)], 255] as [number, number, number, number],
-            updateTriggers: { getFillColor: sigTick, getRadius: zoom >= 16.5 },
-            billboard: true,
-            parameters: { depthCompare: 'always', depthWriteEnabled: false },
-          }),
         // 🏟 sports: glass stadium/arena footprints (all tabs: outline · Sports tab: lit, extruded)
         new PolygonLayer<Major>({
           id: 'sport-venues',
@@ -773,7 +733,7 @@ export default function Map3D() {
         }),
       ],
     })
-  }, [data, friends, comments, commentCounts, selectedCell, myCell, ready, footprint, footprintHexes, showFootprint, jobCells, kindCells, homeFilter, signalsOn, signals, sigTick, zoom >= 16.5, sportOn, majors, pitches, venueGames, zoom >= 12.6, zoom >= 12.8, zoom >= 13.6, zoom >= 14.6, zoom >= 15, zoom >= 15.2, zoom >= 15.4, zoom < 9, city.id, ui, simData, zoom >= 15, zoom >= 13])
+  }, [data, friends, comments, commentCounts, selectedCell, myCell, ready, footprint, footprintHexes, showFootprint, jobCells, kindCells, homeFilter, zoom >= 16.5, sportOn, majors, pitches, venueGames, zoom >= 12.6, zoom >= 12.8, zoom >= 13.6, zoom >= 14.6, zoom >= 15, zoom >= 15.2, zoom >= 15.4, zoom < 9, city.id, ui, simData, zoom >= 15, zoom >= 13])
 
   // ── London landmark labels (Breakpoint-style slabs) — click → fly + open the event
   const landmarkMarkers = useRef<maplibregl.Marker[]>([])

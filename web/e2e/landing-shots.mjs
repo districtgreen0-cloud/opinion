@@ -21,7 +21,6 @@ await shot('hero-london-hackerhouse', 'ldn', { center: [-0.1172, 51.5106], zoom:
 await shot('breakpoint-olympia', 'ldn', { center: [-0.2096, 51.4963], zoom: 16.8, pitch: 64, bearing: 30 })
 await shot('belgrade-build-station', 'bgd', { center: [20.4557, 44.8087], zoom: 17.2, pitch: 64, bearing: -40 }, { labels: false })
 await shot('stadium-emirates', 'ldn', { center: [-0.1086, 51.5549], zoom: 16.3, pitch: 62, bearing: -30 }, { sport: true })
-await shot('signals-hexgrid-strand', 'ldn', { center: [-0.1225, 51.5113], zoom: 17.4, pitch: 58, bearing: -20 }, { labels: false })
 await shot('sf-soma-night', 'sf', { center: [-122.4005, 37.7845], zoom: 16.2, pitch: 64, bearing: 28 })
 await shot('app-desktop-sports', 'ldn', { center: [-0.135, 51.53], zoom: 13.2, pitch: 50, bearing: -20 }, { ui: true, sport: true })
 await shot('app-desktop-london', 'ldn', { center: [-0.1172, 51.5108], zoom: 16.2, pitch: 62, bearing: -24 }, { ui: true })

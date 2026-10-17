@@ -9,7 +9,7 @@ apps and machines, and contributors get rewarded.
 
 ### What you can try in the live app
 - **Globe entry → city picker → cinematic fly-in** (London, New York, San Francisco, Beograd, Novi Sad)
-- **3D map** with glass landmarks, live activity per hex, traffic lights (OSM positions, simulated phases)
+- **3D map** with glass landmarks and live activity per hex
 - **Hexes:** Topics, Notes, **USDC P2P Jobs** (escrow state machine), **Memories** (camera-only photo, 1 per hex)
 - **Events** (Luma feeds) and **Sports** (OSM stadiums/courts + live fixtures from ESPN / TheSportsDB)
 - **Sign in / Sign up:** **Solflare** wallet, Google or email code · profiles, friends, end-to-end-encrypted chat

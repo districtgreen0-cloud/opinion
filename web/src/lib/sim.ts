@@ -1,6 +1,5 @@
 import type { City } from './types'
 import { cityMajors } from './sports'
-import { citySignals } from './signals'
 
 /**
  * User-load simulation: N users split across OPINION cities by population, spread over each whole town.
@@ -50,11 +49,13 @@ export function simPoints(city: City, size: SimSize) {
   const [clng, clat] = city.center
   const kmLat = 1 / 110.574
   const kmLng = 1 / (111.32 * Math.cos((clat * Math.PI) / 180))
-  // hotspots: venues + traffic-signal junctions, weighted toward the centre
+  // hotspots: venues (stadiums, arenas, sports centres) plus seeded street-corner clusters
   const spots: [number, number, number][] = []
   for (const m of cityMajors(city.id)) spots.push([m.p[0], m.p[1], m.k <= 1 ? 0.7 : 0.35])
-  const sig = citySignals(city.id)
-  for (let i = 0; i < sig.length; i += 3) spots.push([sig[i]!.lng, sig[i]!.lat, 0.25])
+  for (let i = 0; i < 120; i++) {
+    const a = r() * Math.PI * 2, d = Math.sqrt(r()) * radiusKm * 0.6
+    spots.push([clng + Math.cos(a) * d * kmLng, clat + Math.sin(a) * d * kmLat, 0.25])
+  }
   const pos = new Float32Array(drawn * 2)
   for (let i = 0; i < drawn; i++) {
     const u = r()
