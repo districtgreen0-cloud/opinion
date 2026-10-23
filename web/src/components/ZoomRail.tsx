@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { useStore } from '../store'
 import { mapHandle } from '../map/handle'
@@ -8,45 +8,6 @@ const PX_PER_ZOOM = 56 // tape speed: one zoom level = 56px of ruler
 const MIN_Z = 0
 const MAX_Z = 20
 
-// ── tiny synthesized click (WebAudio, no files). Unlocks on the first gesture (iOS rule).
-let ctx: AudioContext | null = null
-let lastClick = 0
-function audio(): AudioContext | null {
-  if (ctx) return ctx
-  try {
-    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-    ctx = new AC()
-  } catch {
-    ctx = null
-  }
-  return ctx
-}
-function click(major: boolean) {
-  const now = performance.now()
-  if (now - lastClick < 34) return // a fast fling becomes a purr, not a buzz
-  lastClick = now
-  const a = audio()
-  if (!a || a.state !== 'running') return
-  const t = a.currentTime
-  // a short filtered noise burst = the "tick" of a detent wheel
-  const len = Math.floor(a.sampleRate * 0.012)
-  const buf = a.createBuffer(1, len, a.sampleRate)
-  const d = buf.getChannelData(0)
-  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3
-  const src = a.createBufferSource()
-  src.buffer = buf
-  const bp = a.createBiquadFilter()
-  bp.type = 'bandpass'
-  bp.frequency.value = major ? 2400 : 3600
-  bp.Q.value = 6
-  const g = a.createGain()
-  g.gain.setValueAtTime(major ? 0.5 : 0.28, t)
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03)
-  src.connect(bp).connect(g).connect(a.destination)
-  src.start(t)
-  if (major && navigator.vibrate) navigator.vibrate(3)
-}
-
 /** Left-edge zoom tape + compass: ticks slide as you zoom, click softly, drag/scroll to zoom, tap needle for north. */
 export default function ZoomRail() {
   const ready = useStore((s) => s.mapReady)
@@ -54,26 +15,10 @@ export default function ZoomRail() {
   const hidden = useStore((s) => s.tab !== 'explore' || !!s.selectedCell || s.pickerOpen)
   // mobile: the events / sports strips sit above the dock — end the tape above them
   const strip = useStore((s) => s.tab === 'explore' && !s.selectedCell && s.entered && (s.homeFilter === 'event' || s.homeFilter === 'sport'))
-  const [sound, setSound] = useState(() => {
-    try {
-      return localStorage.getItem('opinion:zoomSound') !== '0'
-    } catch {
-      return true
-    }
-  })
-  const soundRef = useRef(sound)
-  soundRef.current = sound
   const canvas = useRef<HTMLCanvasElement>(null)
   const needle = useRef<HTMLDivElement>(null)
   const readout = useRef<HTMLSpanElement>(null)
   const root = useRef<HTMLDivElement>(null)
-
-  // unlock audio on the first touch/click anywhere
-  useEffect(() => {
-    const unlock = () => audio()?.resume().catch(() => {})
-    addEventListener('pointerdown', unlock, { once: true })
-    return () => removeEventListener('pointerdown', unlock)
-  }, [])
 
   useEffect(() => {
     const map = mapHandle.current
@@ -135,7 +80,6 @@ export default function ZoomRail() {
       // a click for every quarter-zoom detent crossed
       const q = Math.floor(z * 4)
       if (q !== lastQ) {
-        if (soundRef.current) click(q % 4 === 0 || lastQ % 4 === 0)
         lastQ = q
       }
     }
@@ -194,19 +138,6 @@ export default function ZoomRail() {
   }
   const step = (d: number) => mapHandle.current?.easeTo({ zoom: (mapHandle.current.getZoom() ?? 0) + d, duration: 600 })
   const north = () => mapHandle.current?.easeTo({ bearing: 0, duration: 900 })
-  const toggleSound = () => {
-    const v = !sound
-    setSound(v)
-    try {
-      localStorage.setItem('opinion:zoomSound', v ? '1' : '0')
-    } catch {
-      /* private mode */
-    }
-    if (v) {
-      audio()?.resume().catch(() => {})
-      setTimeout(() => click(true), 30)
-    }
-  }
 
   if (!ready) return null
   return (
@@ -260,9 +191,6 @@ export default function ZoomRail() {
 
       <button onClick={() => step(-1)} className="pointer-events-auto mb-1 grid h-5 w-5 shrink-0 place-items-center text-[13px] leading-none text-white/55 hover:text-white" aria-label="Zoom out">
         −
-      </button>
-      <button onClick={toggleSound} className="pointer-events-auto grid h-5 w-5 shrink-0 place-items-center rounded-full text-[9px] text-white/45 hover:text-white" aria-label={sound ? 'Mute zoom clicks' : 'Unmute zoom clicks'} title={sound ? 'Clicks on' : 'Clicks off'}>
-        {sound ? '🔊' : '🔈'}
       </button>
     </div>
   )

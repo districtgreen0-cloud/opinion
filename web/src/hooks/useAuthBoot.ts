@@ -23,6 +23,7 @@ export function useAuthBoot() {
       const s = useStore.getState()
       if (a) s.setAccount(a)
       else if (s.account) s.setAccount(null) // cookie gone → drop stale local copy
+      s.loadDraw() // hex lottery state (depends on the session)
     })
   }, [])
 }

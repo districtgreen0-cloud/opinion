@@ -9,7 +9,6 @@ import { cityData, CITIES } from '../data/mock'
 import { toCell, cellCenter } from '../lib/h3'
 import { avatarSrc, avatarColor } from '../lib/avatars'
 import { BeaconLayer } from './BeaconLayer'
-import { STATION_CENTER } from './stationArt'
 import type { Route } from '../lib/route'
 import { simPoints } from '../lib/sim'
 import { useMajors, loadPitches, iconFor, kindOfId, majorRgb, KIND_RGB as SPORT_RGB, KIND_LABEL, gameWhen, type Major, type Pitch } from '../lib/sports'
@@ -690,17 +689,6 @@ export default function Map3D() {
     landmarkMarkers.current.forEach((m) => m.remove())
     landmarkMarkers.current = []
     if (!map || !ready) return
-    if (city.id === 'bgd') {
-      const node = document.createElement('div')
-      node.className = 'bp-label gold'
-      node.innerHTML = `<div><span class="tag">1884</span><span class="t">Build Station</span></div><div class="rule"></div><div class="s">Old Railway Station · Savski trg · Beograd ↗</div>`
-      node.addEventListener('click', (e) => {
-        e.stopPropagation()
-        useStore.getState().flyTo(STATION_CENTER[0], STATION_CENTER[1], 17)
-      })
-      landmarkMarkers.current = [new maplibregl.Marker({ element: node, anchor: 'bottom', offset: [0, -150] }).setLngLat(STATION_CENTER).addTo(map)]
-      return
-    }
     if (city.id !== 'ldn') return
     const LABELS = [
       { ev: 'ldn-bp26', at: [-0.2096, 51.4963] as [number, number], tag: 'BP26', cls: 'p', t: 'Breakpoint 2026', s: 'Olympia London · 15–17 Nov' },

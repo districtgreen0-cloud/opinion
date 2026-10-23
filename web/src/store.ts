@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { fetchDraw, type DrawState } from './lib/draw'
 import type { City, Comment, CrewMessage, Game, Listing, Vibe } from './lib/types'
 import { CITIES, cityData, epochs } from './data/mock'
 import { toCell, isCurrentRes, H3_RES } from './lib/h3'
@@ -67,6 +68,11 @@ type State = {
   earnPoints: number
   earnOpen: boolean
   setEarnOpen: (v: boolean) => void
+  /** Hex lottery (verifiable draw) */
+  draw: DrawState
+  drawOpen: boolean
+  setDrawOpen: (v: boolean) => void
+  loadDraw: () => Promise<void>
   setEarnConsent: (c: Consent | null) => void
   setEarnPaused: (v: boolean) => void
   addEarnPoints: (n: number, why?: string) => void
@@ -250,6 +256,10 @@ export const useStore = create<State>((set, get) => ({
   earnPoints: load('earnPoints', 0),
   earnOpen: false,
   setEarnOpen: (earnOpen) => set({ earnOpen }),
+  draw: { draw: null, me: null },
+  drawOpen: false,
+  setDrawOpen: (drawOpen) => set({ drawOpen }),
+  loadDraw: async () => set({ draw: await fetchDraw() }),
   setEarnConsent: (earnConsent) => {
     save('earnConsent', earnConsent)
     set({ earnConsent, earnPaused: false })
@@ -346,6 +356,7 @@ export const useStore = create<State>((set, get) => ({
     save('account', account)
     set({ account, authOpen: false })
     if (account) get().setMe({ handle: account.handle, avatar: account.avatar })
+    get().loadDraw() // lottery state depends on the session
   },
 
   setTab: (tab) => set({ tab }),

@@ -20,6 +20,21 @@ const sha256 = async (data: Uint8Array): Promise<string> =>
 export const leafHash = (wallet: string, amount: number): Promise<string> =>
   sha256(enc.encode(`${wallet}:${amount}`));
 
+/** sha256 of a utf-8 string, hex. */
+export const sha256Hex = (s: string): Promise<string> => sha256(enc.encode(s));
+
+/** Root over already-hashed leaves, in the given order (sorted-pair parents, odd leaf pairs with itself). */
+export async function merkleRoot(leaves: string[]): Promise<string> {
+  let level = [...leaves];
+  if (!level.length) return "0".repeat(64);
+  while (level.length > 1) {
+    const next: string[] = [];
+    for (let i = 0; i < level.length; i += 2) next.push(await parent(level[i]!, level[i + 1] ?? level[i]!));
+    level = next;
+  }
+  return level[0]!;
+}
+
 /** Sorted-pair hashing so verifiers do not need left/right flags. */
 const parent = async (a: string, b: string): Promise<string> => {
   const [lo, hi] = a <= b ? [a, b] : [b, a];

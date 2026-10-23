@@ -28,6 +28,7 @@ export async function postComment(
   try {
     const res = await fetch(`${BASE}/api/hex/${cell}/comments`, {
       method: 'POST',
+      credentials: 'include', // the session links the post to the account (hex lottery entries)
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body),
     })

@@ -325,9 +325,6 @@ body,
 .bp-label .tag.p { background: #9945ff; color: #fff; }
 
 /* Belgrade: pastel-gold variant of the landmark slab */
-.bp-label.gold { box-shadow: 0 0 44px rgba(255, 217, 138, 0.38), 0 0 90px rgba(231, 200, 140, 0.16); border-color: rgba(255, 227, 166, 0.3); }
-.bp-label.gold .rule { background: linear-gradient(90deg, #e7c88c, #fff2d2, #e7c88c); }
-.bp-label.gold .tag { background: #ffe3a6; color: #1a1205; }
 
 /* horizontal strips that scroll without a visible bar (home tabs on narrow phones) */
 .no-scrollbar { scrollbar-width: none; }

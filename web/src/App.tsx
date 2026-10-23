@@ -22,6 +22,7 @@ import CityPicker from './components/CityPicker'
 import ZoomRail from './components/ZoomRail'
 import NavHUD from './components/NavHUD'
 import NavSearch from './components/NavSearch'
+import DrawSheet from './components/DrawSheet'
 import ProfileCard from './components/Profile'
 import { useAuthBoot } from './hooks/useAuthBoot'
 import LiteMode, { hasWebGL2 } from './components/LiteMode'
@@ -90,6 +91,7 @@ export default function App() {
       <CityPicker />
       <EarnSheet />
       <NavSearch />
+      <DrawSheet />
       <ProfileCard />
       <AuthModal />
       <Splash />

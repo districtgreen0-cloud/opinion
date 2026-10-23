@@ -1,0 +1,11 @@
+{
+  "name": "OPINIONS",
+  "symbol": "OPN",
+  "description": "The OPINIONS collection on Solana.",
+  "image": "https://opinions-nft.pages.dev/opinions.png",
+  "external_url": "https://opinions-app.pages.dev",
+  "properties": {
+    "files": [{ "uri": "https://opinions-nft.pages.dev/opinions.png", "type": "image/png" }],
+    "category": "image"
+  }
+}

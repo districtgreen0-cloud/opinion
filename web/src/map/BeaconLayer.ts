@@ -4,7 +4,6 @@ import { MercatorCoordinate, type CustomLayerInterface, type Map as MLMap } from
 import type { VEvent } from '../lib/types'
 import { AVATARS, avatarSrc } from '../lib/avatars'
 import { buildLandmarks, type LandmarkHandle } from './landmarks'
-import { buildStation, type StationHandle } from './stationArt'
 import { LANDMARK_EVENT } from '../data/mock'
 
 /**
@@ -104,7 +103,6 @@ export class BeaconLayer implements CustomLayerInterface {
   private reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   private pending: { center: [number, number]; events: VEvent[]; cityId: string } | null = null
   private landmarks: LandmarkHandle | null = null
-  private station: StationHandle | null = null
   private userPos: [number, number] | null = null
   private dpr = Math.min(window.devicePixelRatio || 1, 2)
 
@@ -157,10 +155,6 @@ export class BeaconLayer implements CustomLayerInterface {
       this.landmarks = buildLandmarks((ll) => this.toLocal(ll), this.dpr)
       this.scene.add(this.landmarks.group)
     }
-    if (cityId === 'bgd') {
-      this.station = buildStation((ll) => this.toLocal(ll), this.dpr)
-      this.scene.add(this.station.group)
-    }
     if (this.userPos) this.setUser(this.userPos)
     this.applyTheme()
     this.map.triggerRepaint()
@@ -207,7 +201,6 @@ export class BeaconLayer implements CustomLayerInterface {
   setSelected(id: string | null) {
     this.selected = id
     this.landmarks?.focus(id ? (LANDMARK_EVENT[id] ?? null) : null)
-    this.station?.focus(id === 'bgd-build-station')
     this.map?.triggerRepaint()
   }
 
@@ -337,11 +330,6 @@ export class BeaconLayer implements CustomLayerInterface {
       this.landmarks.dispose()
       this.landmarks = null
     }
-    if (this.station) {
-      this.scene.remove(this.station.group)
-      this.station.dispose()
-      this.station = null
-    }
     for (const b of this.beacons) {
       this.scene.remove(b.group)
       b.group.traverse((o) => {
@@ -392,7 +380,6 @@ export class BeaconLayer implements CustomLayerInterface {
     }
     this.compass?.tick(t, this.map.getZoom())
     this.landmarks?.tick(t)
-    this.station?.tick(t)
 
     this.camera.projectionMatrix = new THREE.Matrix4().fromArray(Array.from(mvp)).multiply(this.originMatrix)
     this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert()

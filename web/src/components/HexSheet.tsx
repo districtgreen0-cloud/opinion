@@ -122,6 +122,7 @@ export default function HexSheet() {
       )
     }
     s().addComment(r.comment) // dedups with the WebSocket echo by id
+    if (s().draw.draw?.status === 'open' && !s().draw.me?.entered) setTimeout(() => s().loadDraw(), 800) // lottery entry lands async
     setF({ text: '', title: '', price: '' })
     const [pts, why] = topic ? [5, 'reply'] as const : REWARD[tab]
     s().award(pts, why)

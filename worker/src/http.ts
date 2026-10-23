@@ -1,5 +1,5 @@
 // Shared HTTP helpers (CORS, JSON responses, body parsing).
-export const ALLOWED_ORIGINS = new Set(["http://localhost:4700", "http://127.0.0.1:4700"]);
+export const ALLOWED_ORIGINS = new Set(["http://localhost:4700", "http://127.0.0.1:4700", "http://localhost:4701"]) // 4701 = web dev server pointed at a local worker (e2e);
 export const MAX_BODY = 8 * 1024;
 
 // ---------- helpers ----------

@@ -70,6 +70,7 @@ export default function TopBar() {
 
       <div className="pointer-events-auto flex items-center gap-2">
         <EarnButton />
+        <DrawButton />
         <div className={`glass hidden h-11 items-center gap-1 rounded-2xl px-1.5 ${ui === 'light' ? '' : 'md:flex'}`} role="radiogroup" aria-label="Lighting">
           {LIGHTS.map((l) => (
             <button
@@ -132,6 +133,29 @@ function EarnButton() {
     >
       <span className={`live-dot ${on ? '' : ''}`} style={on ? { background: '#14f195', boxShadow: '0 0 10px #14f195' } : { background: paused ? '#aa8' : '#555', boxShadow: 'none', animation: 'none' }} />
       <span className="hidden whitespace-nowrap sm:inline">{consent ? (paused ? 'Earn paused' : <>Earning · <span className="num">{pts.toLocaleString()}</span></>) : 'Earn'}</span>
+    </button>
+  )
+}
+
+/** 🎁 Hex lottery pill: shown while a draw exists; pulses until you've entered. */
+function DrawButton() {
+  const draw = useStore((s) => s.draw.draw)
+  const entered = useStore((s) => !!s.draw.me?.entered)
+  const open = useStore((s) => s.setDrawOpen)
+  if (!draw) return null
+  const live = draw.status === 'open'
+  return (
+    <button
+      onClick={() => open(true)}
+      className={`glass-btn flex h-9 min-w-9 items-center justify-center gap-1.5 !rounded-xl !px-2 !py-0 text-[12px] font-medium sm:h-11 sm:!rounded-2xl sm:!px-3 ${live && !entered ? '!border-[#9945ff]/50' : ''}`}
+      aria-label={draw.status === 'drawn' ? 'Hex lottery: see the winner' : entered ? 'Hex lottery: you are in' : `Hex lottery: win ${draw.prize}`}
+      title={draw.title}
+    >
+      <span className="relative text-[15px] leading-none">
+        🎁
+        {live && !entered && <span className="live-dot absolute -top-0.5 -right-1 !h-1.5 !w-1.5" style={{ background: '#9945ff', boxShadow: '0 0 8px #9945ff' }} />}
+      </span>
+      <span className="hidden whitespace-nowrap sm:inline">{draw.status === 'drawn' ? 'Winner' : entered ? 'You’re in' : 'Win a card'}</span>
     </button>
   )
 }

@@ -100,3 +100,17 @@ Signed-in, standing in the hex, camera capture only (the app has no gallery pick
 Images are compressed on the phone (WebP/JPEG ≤ 1440 px, EXIF/GPS dropped by re-encoding), checked by magic bytes, stored in R2 `opinion-media`,
 served from `/api/media/memories/...` with immutable caching. 3 distinct reports hide a memory pending review. Never drawn on the map.
 Setup: `npx wrangler r2 bucket create opinion-media` then `npx wrangler d1 migrations apply opinion-db --remote`.
+
+## Hex lottery (verifiable draw)
+
+Sign up → follow the OPINION X account (self-declared handle) → post an opinion (12+ chars) in any hex while a draw is open = one entry per account.
+Admin page: `/api/draw/admin` (ADMIN_TOKEN). Flow: **Create** → **Commit** (publish the printed commitment on X) → entries → after `ends_at`: **Reveal**.
+
+Anyone can recompute the winner from `GET /api/draw/:id/proof` and `GET /api/draw/:id/entries`:
+
+1. `sha256(seed) == commitHash` (the seed was fixed before entries closed).
+2. `leaves[i] = sha256(draw|account|cell|comment)` in the published order; `entriesRoot` = merkle root (sorted-pair sha256, odd leaf pairs with itself).
+3. `winnerIndex = BigInt('0x' + sha256(seed + entriesRoot + anchor)) % entriesCount`, where `anchor` is the Solana mainnet block hash recorded at reveal time.
+4. `leaves[winnerIndex] == winnerLeaf`.
+
+The winner's follow is checked by hand before the prize ships; delivery is arranged by email. Drawn draws are immutable; undrawn ones can be cancelled.

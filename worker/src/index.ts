@@ -2,6 +2,7 @@ import { handleFeeds } from "./feeds";
 import { handleSports } from "./sports";
 import { earnCron, handleEarn } from "./earn";
 import { handleMemories } from "./memories";
+import { handleDraw, recordEntry } from "./draw";
 import { getResolution, isValidCell, latLngToCell } from "h3-js";
 import { HexRoom } from "./hex-room";
 import { buildTree, type Leaf } from "./merkle";
@@ -139,6 +140,7 @@ async function postComment(req: Request, env: Env, ctx: ExecutionContext, cell: 
     ).bind(c.id, c.cell, c.title ?? "", c.text, c.priceUsdc ?? 0, c.handle, c.avatar, c.wallet ?? "", c.createdAt, c.createdAt).run();
   }
   ctx.waitUntil(recordActivity(env, result.comment, handle, avatar));
+  ctx.waitUntil(recordEntry(env, account?.id, cell, result.comment.id, text)); // hex lottery entry, if a draw is open
   return json(req, { comment: result.comment }, 201);
 }
 
@@ -386,6 +388,11 @@ async function route(req: Request, env: Env, ctx: ExecutionContext): Promise<Res
 
   if (path.startsWith("/api/earn/")) {
     const res = await handleEarn(req, env, path, m);
+    if (res) return res;
+  }
+
+  if (path === "/api/draw" || path.startsWith("/api/draw/")) {
+    const res = await handleDraw(req, env, ctx, path, m);
     if (res) return res;
   }
 

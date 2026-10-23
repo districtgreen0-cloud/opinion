@@ -257,7 +257,7 @@ export async function earnCron(env: Env): Promise<void> {
 }
 
 // ---------- internal dashboard ----------
-function isAdmin(req: Request, env: Env) {
+export function isAdmin(req: Request, env: Env) {
   const h = req.headers.get("Authorization") ?? ""
   return !!env.ADMIN_TOKEN && env.ADMIN_TOKEN.length >= 24 && h === `Bearer ${env.ADMIN_TOKEN}`
 }
