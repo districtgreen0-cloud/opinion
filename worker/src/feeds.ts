@@ -43,6 +43,7 @@ const CITY_FEEDS: Record<string, CityFeeds> = {
   sf: { center: [-122.4194, 37.7749], radiusKm: 40, luma: ['discover&id=discplace-BDj7GNbGlsF7Cka', 'calendar&id=cal-GNxoseumqYXHPf1'] },
   bgd: { center: [20.4573, 44.8125], radiusKm: 40, luma: ['calendar&id=cal-GNxoseumqYXHPf1'] },
   ns: { center: [19.8335, 45.2671], radiusKm: 40, luma: ['calendar&id=cal-GNxoseumqYXHPf1'] },
+  rom: { center: [12.4922, 41.8902], radiusKm: 40, luma: ['calendar&id=cal-GNxoseumqYXHPf1'] },
 }
 
 const HORIZON_DAYS = 21 // only events starting in the next 3 weeks (or live now)

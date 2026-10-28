@@ -15,6 +15,7 @@ const POP: Record<City['id'], { pop: number; radiusKm: number }> = {
   sf: { pop: 810_000, radiusKm: 6.5 },
   bgd: { pop: 1_690_000, radiusKm: 9 },
   ns: { pop: 370_000, radiusKm: 5 },
+  rom: { pop: 2_750_000, radiusKm: 12 },
 }
 const TOTAL = Object.values(POP).reduce((a, c) => a + c.pop, 0)
 export const simShare = (id: City['id']) => POP[id].pop / TOTAL

@@ -3,7 +3,7 @@ import type { City } from './types'
 /** Crypto / neobank cards — researched from each issuer's own official pages (see `sources`, `checkedAt`). */
 export type Avail = 'available' | 'not_available' | 'waitlist' | 'unknown'
 /** US = New York State (our NYC data), USCA = California (San Francisco): card availability differs by state. */
-export type CountryCode = 'GB' | 'US' | 'USCA' | 'RS'
+export type CountryCode = 'GB' | 'US' | 'USCA' | 'RS' | 'IT'
 export type CryptoCard = {
   id: string
   name: string
@@ -50,6 +50,8 @@ const norm = (c: CryptoCard): CryptoCard => ({
     US: AVAILS.includes(c.countries?.US) ? c.countries.US : 'unknown',
     USCA: AVAILS.includes(c.countries?.USCA) ? c.countries.USCA : 'unknown',
     RS: AVAILS.includes(c.countries?.RS) ? c.countries.RS : 'unknown',
+    // Italy (EU/EEA): not researched per card yet → shown as unconfirmed unless the data says otherwise
+    IT: AVAILS.includes(c.countries?.IT) ? c.countries.IT : 'unknown',
   },
 })
 // a card the issuer has shut down everywhere we cover is dropped rather than listed as "not here"
@@ -69,12 +71,14 @@ export const CITY_COUNTRY: Record<City['id'], { code: CountryCode; name: string;
   sf: { code: 'USCA', name: 'California, US', flag: '🇺🇸', short: 'CA' },
   bgd: { code: 'RS', name: 'Serbia', flag: '🇷🇸', short: 'RS' },
   ns: { code: 'RS', name: 'Serbia', flag: '🇷🇸', short: 'RS' },
+  rom: { code: 'IT', name: 'Italy', flag: '🇮🇹', short: 'IT' },
 }
 export const COUNTRIES: { code: CountryCode; name: string; flag: string; short: string }[] = [
   { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', short: 'UK' },
   { code: 'US', name: 'New York, US', flag: '🇺🇸', short: 'NY' },
   { code: 'USCA', name: 'California, US', flag: '🇺🇸', short: 'CA' },
   { code: 'RS', name: 'Serbia', flag: '🇷🇸', short: 'RS' },
+  { code: 'IT', name: 'Italy', flag: '🇮🇹', short: 'IT' },
 ]
 
 /** Short brand for art + buttons: "MetaMask Card" → "MetaMask", drops legal-entity parentheses. */

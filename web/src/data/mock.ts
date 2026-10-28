@@ -7,7 +7,12 @@ export const CITIES: City[] = [
   { id: 'sf', name: 'San Francisco', center: [-122.4005, 37.7845], zoom: 15.7, bearing: 28, district: 'SoMa · Moscone · Union Square' },
   { id: 'bgd', name: 'Beograd', center: [20.4560, 44.8112], zoom: 15.6, bearing: -30, district: 'Savamala · Old Railway Station' },
   { id: 'ns', name: 'Novi Sad', center: [19.8452, 45.2551], zoom: 15.6, bearing: -12, district: 'Centar · Liman' },
+  { id: 'rom', name: 'Roma', center: [12.4922, 41.8902], zoom: 15.9, bearing: -18, district: 'Colosseo · Monti · Fori Imperiali' },
 ]
+
+/** Rome: the Colosseum hologram replaces this event's generic beacon (map/colosseumArt.ts). */
+export const COLOSSEUM_EVENT = 'rom-colosseum'
+export const COLOSSEUM_URL = 'https://www.colosseum.com/'
 
 // deterministic RNG so the city looks the same on every load
 function rng(seed: number) {
@@ -136,7 +141,7 @@ export function cityData(city: City): CityData {
   const now = Date.now()
   const pick = <T,>(a: T[]) => a[Math.floor(r() * a.length)]
 
-  const events: VEvent[] = city.id === 'ldn' ? LONDON_EVENTS() : EVENT_TEMPLATES.map((t, i) => {
+  const generated: VEvent[] = city.id === 'ldn' ? [] : EVENT_TEMPLATES.map((t, i) => {
     const live = i < 3
     const ang = (i / EVENT_TEMPLATES.length) * Math.PI * 2 + r()
     const rad = 0.0025 + r() * 0.004
@@ -153,6 +158,19 @@ export function cityData(city: City): CityData {
       attendees: Math.round(live ? 80 + r() * 420 : 30 + r() * 200),
     }
   })
+  const events: VEvent[] =
+    city.id === 'ldn'
+      ? LONDON_EVENTS()
+      : city.id === 'rom'
+        ? [
+            {
+              id: COLOSSEUM_EVENT, title: 'Enter the Arena', host: 'Colosseum', venue: 'Colosseo', lat: 41.8902, lng: 12.4922,
+              startsAt: now - 3600000, endsAt: now + 45 * 86400000, status: 'live', cover: 'linear-gradient(135deg,#000 0%,#2a2a33 45%,#c77dff 80%,#5de0c8 100%)',
+              lumaUrl: COLOSSEUM_URL, attendees: 2600,
+            },
+            ...generated,
+          ]
+        : generated
 
   // hex activity: hot around live venues, warm scatter elsewhere
   const hexActivity = new Map<string, number>()

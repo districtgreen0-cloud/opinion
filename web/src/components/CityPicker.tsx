@@ -12,6 +12,7 @@ const META: Record<City['id'], { country: string; c: string }> = {
   sf: { country: 'California', c: '#ff8a1f' },
   bgd: { country: 'Srbija', c: '#e7c88c' },
   ns: { country: 'Srbija', c: '#b26bff' },
+  rom: { country: 'Italia', c: '#ff6b6b' },
 }
 
 /** World view → one thin strip of cities: tap to preview, tap again (or Fly in) to dive into the streets. */

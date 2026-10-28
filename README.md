@@ -8,7 +8,7 @@ job or photo carries proof of place. Those signals become real-time, location-ve
 apps and machines, and contributors get rewarded.
 
 ### What you can try in the live app
-- **Globe entry → city picker → cinematic fly-in** (London, New York, San Francisco, Beograd, Novi Sad)
+- **Globe entry → city picker → cinematic fly-in** (London, New York, San Francisco, Beograd, Novi Sad, Roma · the Colosseum hologram links to colosseum.com)
 - **3D map** with glass landmarks and live activity per hex
 - **Hexes:** Topics, Notes, **USDC P2P Jobs** (escrow state machine), **Memories** (camera-only photo, 1 per hex)
 - **Events** (Luma feeds) and **Sports** (OSM stadiums/courts + live fixtures from ESPN / TheSportsDB)

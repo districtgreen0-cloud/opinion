@@ -4,7 +4,8 @@ import { MercatorCoordinate, type CustomLayerInterface, type Map as MLMap } from
 import type { VEvent } from '../lib/types'
 import { AVATARS, avatarSrc } from '../lib/avatars'
 import { buildLandmarks, type LandmarkHandle } from './landmarks'
-import { LANDMARK_EVENT } from '../data/mock'
+import { COLOSSEUM_EVENT, LANDMARK_EVENT } from '../data/mock'
+import { buildColosseum, type ColosseumHandle } from './colosseumArt'
 
 /**
  * The Radiate signature, rendered with three.js inside MapLibre's GL context:
@@ -103,6 +104,7 @@ export class BeaconLayer implements CustomLayerInterface {
   private reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   private pending: { center: [number, number]; events: VEvent[]; cityId: string } | null = null
   private landmarks: LandmarkHandle | null = null
+  private colosseum: ColosseumHandle | null = null
   private userPos: [number, number] | null = null
   private dpr = Math.min(window.devicePixelRatio || 1, 2)
 
@@ -137,7 +139,7 @@ export class BeaconLayer implements CustomLayerInterface {
   }
 
   /** Anchor the scene at the city center and rebuild every venue beacon. */
-  /** cityId picks the city's 3D art: London → glass event landmarks, Belgrade → the gold Old Railway Station. */
+  /** cityId picks the city's 3D art: London → glass event landmarks, Rome → the Colosseum hologram. */
   setScene(center: [number, number], events: VEvent[], cityId = '') {
     const landmarks = cityId === 'ldn'
     this.pending = { center, events, cityId }
@@ -150,10 +152,15 @@ export class BeaconLayer implements CustomLayerInterface {
       .scale(new THREE.Vector3(this.scale, -this.scale, this.scale))
       .multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2))
     // venues with a real 3D landmark get the glass building instead of a generic beacon
-    for (const ev of events) if (!(landmarks && LANDMARK_EVENT[ev.id])) this.beacons.push(this.makeBeacon(ev))
+    const rome = cityId === 'rom'
+    for (const ev of events) if (!(landmarks && LANDMARK_EVENT[ev.id]) && !(rome && ev.id === COLOSSEUM_EVENT)) this.beacons.push(this.makeBeacon(ev))
     if (landmarks) {
       this.landmarks = buildLandmarks((ll) => this.toLocal(ll), this.dpr)
       this.scene.add(this.landmarks.group)
+    }
+    if (rome) {
+      this.colosseum = buildColosseum((ll) => this.toLocal(ll), this.dpr)
+      this.scene.add(this.colosseum.group)
     }
     if (this.userPos) this.setUser(this.userPos)
     this.applyTheme()
@@ -201,6 +208,7 @@ export class BeaconLayer implements CustomLayerInterface {
   setSelected(id: string | null) {
     this.selected = id
     this.landmarks?.focus(id ? (LANDMARK_EVENT[id] ?? null) : null)
+    this.colosseum?.focus(id === COLOSSEUM_EVENT)
     this.map?.triggerRepaint()
   }
 
@@ -330,6 +338,11 @@ export class BeaconLayer implements CustomLayerInterface {
       this.landmarks.dispose()
       this.landmarks = null
     }
+    if (this.colosseum) {
+      this.scene.remove(this.colosseum.group)
+      this.colosseum.dispose()
+      this.colosseum = null
+    }
     for (const b of this.beacons) {
       this.scene.remove(b.group)
       b.group.traverse((o) => {
@@ -380,6 +393,7 @@ export class BeaconLayer implements CustomLayerInterface {
     }
     this.compass?.tick(t, this.map.getZoom())
     this.landmarks?.tick(t)
+    this.colosseum?.tick(t)
 
     this.camera.projectionMatrix = new THREE.Matrix4().fromArray(Array.from(mvp)).multiply(this.originMatrix)
     this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert()

@@ -319,6 +319,12 @@ body,
   box-shadow: 0 0 50px rgba(153, 69, 255, 0.55), 0 0 90px rgba(20, 241, 149, 0.25);
 }
 .bp-label .t { font-size: 12px; font-weight: 700; }
+/* Colosseum slab: CRT glitch — violet/teal ghost edges that jitter */
+.bp-label.glitch { box-shadow: 0 0 40px rgba(199, 125, 255, 0.35), 0 0 80px rgba(93, 224, 200, 0.14); }
+.bp-label.glitch .t, .bp-label.glitch .s { display: inline-block; animation: slab-glitch 3.2s steps(1, end) infinite; }
+.bp-label.glitch .s { animation-delay: 0.12s; }
+@keyframes slab-glitch { 0%, 88% { text-shadow: none; transform: none; } 90% { text-shadow: -2px 0 #c77dff, 2px 0 #5de0c8; transform: translateX(1px); } 93% { text-shadow: 2px 0 #c77dff, -2px 0 #5de0c8; transform: translateX(-1px); } 96% { text-shadow: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bp-label.glitch .t, .bp-label.glitch .s { animation: none; } }
 .bp-label .s { font-size: 10px; color: rgba(255, 255, 255, 0.6); margin-top: 3px; }
 .bp-label .rule { height: 2px; margin: 7px 0 6px; background: linear-gradient(90deg, #9945ff, #14f195); }
 .bp-label .tag { display: inline-block; font-size: 9.5px; padding: 2px 6px; margin-right: 6px; color: #000; background: #14f195; font-weight: 700; }

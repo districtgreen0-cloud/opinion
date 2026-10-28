@@ -5,7 +5,7 @@ import { H3HexagonLayer } from '@deck.gl/geo-layers'
 import { ScatterplotLayer, IconLayer, TextLayer, PolygonLayer } from '@deck.gl/layers'
 import { useStore, type HomeFilter } from '../store'
 import { buildStyle, LIGHTING, type MapLook } from '../lib/mapStyle'
-import { cityData, CITIES } from '../data/mock'
+import { cityData, CITIES, COLOSSEUM_EVENT, COLOSSEUM_URL } from '../data/mock'
 import { toCell, cellCenter } from '../lib/h3'
 import { avatarSrc, avatarColor } from '../lib/avatars'
 import { BeaconLayer } from './BeaconLayer'
@@ -689,14 +689,18 @@ export default function Map3D() {
     landmarkMarkers.current.forEach((m) => m.remove())
     landmarkMarkers.current = []
     if (!map || !ready) return
-    if (city.id !== 'ldn') return
-    const LABELS = [
-      { ev: 'ldn-bp26', at: [-0.2096, 51.4963] as [number, number], tag: 'BP26', cls: 'p', t: 'Breakpoint 2026', s: 'Olympia London · 15–17 Nov' },
-      { ev: 'ldn-hh', at: [-0.1174, 51.5109] as [number, number], tag: 'HH', cls: '', t: 'Hacker House London', s: 'Somerset House · 1–12 Nov · Demo Day 12 Nov' },
-    ]
-    landmarkMarkers.current = LABELS.map((l) => {
+    type Label = { ev: string; at: [number, number]; tag: string; cls: string; t: string; s: string; href?: string; offset: number }
+    const LABELS: Record<string, Label[]> = {
+      ldn: [
+        { ev: 'ldn-bp26', at: [-0.2096, 51.4963], tag: 'BP26', cls: 'p', t: 'Breakpoint 2026', s: 'Olympia London · 15–17 Nov', offset: -40 },
+        { ev: 'ldn-hh', at: [-0.1174, 51.5109], tag: 'HH', cls: '', t: 'Hacker House London', s: 'Somerset House · 1–12 Nov · Demo Day 12 Nov', offset: -40 },
+      ],
+      // the slab floats above the Colosseum hologram; click → colosseum.com sign-up (new tab) + the event card
+      rom: [{ ev: COLOSSEUM_EVENT, at: [12.4922, 41.8902], tag: 'ARENA', cls: 'p', t: 'Enter the Arena', s: 'Sign up at colosseum.com', href: COLOSSEUM_URL, offset: -230 }],
+    }
+    landmarkMarkers.current = (LABELS[city.id] ?? []).map((l) => {
       const node = document.createElement('div')
-      node.className = 'bp-label'
+      node.className = 'bp-label' + (l.href ? ' glitch' : '')
       node.innerHTML = `<div><span class="tag ${l.cls}">${l.tag}</span><span class="t">${l.t}</span></div><div class="rule"></div><div class="s">${l.s} ↗</div>`
       node.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -704,8 +708,9 @@ export default function Map3D() {
         s.selectEvent(l.ev)
         s.flyTo(l.at[0], l.at[1], 16.6)
         s.setTab('events')
+        if (l.href) window.open(l.href, '_blank', 'noopener')
       })
-      return new maplibregl.Marker({ element: node, anchor: 'bottom', offset: [0, -40] }).setLngLat(l.at).addTo(map)
+      return new maplibregl.Marker({ element: node, anchor: 'bottom', offset: [0, l.offset] }).setLngLat(l.at).addTo(map)
     })
   }, [city, ready])
 
