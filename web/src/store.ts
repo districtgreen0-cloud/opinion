@@ -142,6 +142,7 @@ type State = {
   openCrew: (id: string | null) => void
   flyTo: (lng: number, lat: number, zoom?: number) => void
   addComment: (c: Comment) => void
+  removeComments: (ids: string[]) => void
   upsertPost: (c: Comment) => void
   hexTab: 'topic' | 'note' | 'job' | 'memory'
   setHexTab: (t: 'topic' | 'note' | 'job' | 'memory') => void
@@ -395,6 +396,7 @@ export const useStore = create<State>((set, get) => ({
   selectEvent: (selectedEventId) => set({ selectedEventId }),
   openCrew: (crewEventId) => set({ crewEventId, tab: crewEventId ? 'crews' : get().tab }),
   flyTo: (lng, lat, zoom) => set({ flyTarget: { lng, lat, zoom, key: Date.now() } }),
+  removeComments: (ids) => set({ comments: get().comments.filter((x) => !ids.includes(x.id) && !(x.parentId && ids.includes(x.parentId))) }),
   addComment: (c) => {
     if (get().comments.some((x) => x.id === c.id)) return get().upsertPost(c)
     // notes roll off after 300; topics, replies and jobs are never evicted

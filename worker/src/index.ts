@@ -1,6 +1,6 @@
 import { handleFeeds } from "./feeds";
 import { handleSports } from "./sports";
-import { earnCron, handleEarn } from "./earn";
+import { earnCron, handleEarn, isAdmin } from "./earn";
 import { handleMemories } from "./memories";
 import { handleDraw, recordEntry } from "./draw";
 import { getResolution, isValidCell, latLngToCell } from "h3-js";
@@ -411,6 +411,24 @@ async function route(req: Request, env: Env, ctx: ExecutionContext): Promise<Res
   if (path === "/api/market" && m === "GET") return listMarket(req, env, url);
   if (path === "/api/market" && m === "POST") return createListing(req, env);
 
+  // admin: remove every post by the given handles / account ids from one hex (and the global index)
+  if (path === "/api/admin/purge" && m === "POST") {
+    if (!isAdmin(req, env)) return err(req, "forbidden", 403);
+    const b = await readJson(req);
+    const cell = String(b?.cell ?? "").toLowerCase();
+    const handles = Array.isArray(b?.handles) ? (b.handles as unknown[]).map(String) : [];
+    const accountIds = Array.isArray(b?.accountIds) ? (b.accountIds as unknown[]).map(String) : [];
+    if (!isValidCell(cell) || (!handles.length && !accountIds.length)) return err(req, "invalid", 400);
+    const ids = await env.HEX_ROOM.getByName(cell).purge(handles, accountIds);
+    const lower = handles.map((h) => h.toLowerCase());
+    const stmts = [
+      ...ids.map((id) => env.DB.prepare("DELETE FROM comments_index WHERE id = ?").bind(id)),
+      ...ids.map((id) => env.DB.prepare("DELETE FROM jobs WHERE id = ?").bind(id)),
+      ...lower.map((h) => env.DB.prepare("DELETE FROM comments_index WHERE cell = ? AND lower(handle) = ?").bind(cell, h)),
+    ];
+    if (stmts.length) await env.DB.batch(stmts);
+    return json(req, { ok: true, cell, removed: ids });
+  }
   if (path === "/api/jobs" && m === "GET") return listJobs(req, env, url);
   const jobAct = path.match(/^\/api\/jobs\/([0-9a-fA-F-]{8,64})\/([a-z]+)$/);
   if (jobAct && m === "POST") return jobAction(req, env, jobAct[1] as string, jobAct[2] as string);

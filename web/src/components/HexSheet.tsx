@@ -75,7 +75,7 @@ export default function HexSheet() {
   const [clng, clat] = cellCenter(cell)
   const dist = pos ? km(pos.lat, pos.lng, clat, clng) : null
 
-  useEffect(() => hexSocket(cell, (c) => useStore.getState().addComment(c)), [cell])
+  useEffect(() => hexSocket(cell, (c) => useStore.getState().addComment(c), (ids) => useStore.getState().removeComments(ids)), [cell])
   useEffect(() => {
     setErr(null)
     setOpenTopic(null)

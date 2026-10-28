@@ -58,7 +58,7 @@ export async function fetchFeed(): Promise<Comment[] | null> {
   }
 }
 
-export function hexSocket(cell: string, onComment: (c: Comment) => void): () => void {
+export function hexSocket(cell: string, onComment: (c: Comment) => void, onPurge?: (ids: string[]) => void): () => void {
   if (!LIVE) return () => {}
   const url = (BASE || location.origin).replace(/^http/, 'ws') + `/api/hex/${cell}/ws`
   let ws: WebSocket | null = new WebSocket(url)
@@ -66,6 +66,7 @@ export function hexSocket(cell: string, onComment: (c: Comment) => void): () => 
     try {
       const m = JSON.parse(e.data)
       if (m.type === 'comment' || m.type === 'job') onComment(m.comment)
+      else if (m.type === 'purge' && Array.isArray(m.ids)) onPurge?.(m.ids as string[])
     } catch {
       /* ignore */
     }

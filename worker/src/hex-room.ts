@@ -154,6 +154,17 @@ export class HexRoom extends DurableObject<Env> {
     return comment;
   }
 
+  /** RPC (admin): delete every post by these handles or account ids (test accounts, takedowns). Returns the ids removed. */
+  purge(handles: string[], accountIds: string[] = []): string[] {
+    const sql = this.ctx.storage.sql;
+    const hs = handles.map((h) => h.toLowerCase());
+    const rows = sql.exec<{ id: string; handle: string; account_id: string | null }>("SELECT id, handle, account_id FROM comments").toArray();
+    const ids = rows.filter((r) => hs.includes(r.handle.toLowerCase()) || (r.account_id && accountIds.includes(r.account_id))).map((r) => r.id);
+    for (const id of ids) sql.exec("DELETE FROM comments WHERE id = ? OR parent_id = ?", id, id);
+    if (ids.length) this.broadcast({ type: "purge", ids });
+    return ids;
+  }
+
   /** WebSocket upgrade (Hibernation API). */
   async fetch(request: Request): Promise<Response> {
     if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
