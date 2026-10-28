@@ -66,38 +66,39 @@ const EVENT_TEMPLATES = [
   { title: 'Warehouse 03:00', host: 'NOCTURNE', venue: 'Pier Warehouse', cover: 'linear-gradient(135deg,#2e0b1f,#ff3d8b 60%,#b26bff)' },
 ]
 
+// ambient notes: real, useful, upbeat — the kind of thing you would want from someone standing where you stand
 const COMMENT_POOL = [
-  'line is 20 min but moving fast',
-  'bass in here is unreal rn',
-  'who left a jacket on the stairs lol',
-  'rooftop opening in 10',
-  'free water at the bar, stay hydrated',
-  'dj just dropped an unreleased one 🔥',
-  'quiet tonight, good vibes though',
-  'anyone selling 1 ticket for later?',
-  'best pizza slice on this block, trust',
-  'cops chilling by the corner, all good',
-  'sunset from here is insane',
-  'crew meeting at the fountain at 11',
-  'they ran out of tote bags already',
-  'this hex is the move tonight',
-  'new mural just went up on the wall',
+  'entry line is 20 min and moving fast',
+  'sound is excellent tonight, best room in the city',
+  'rooftop opens in 10, go early for the view',
+  'free water at the bar, staff are lovely',
+  'the DJ just played an unreleased track 🔥',
+  'calm evening here, perfect for a long conversation',
+  'one spare ticket for later, happy to pass it on at cost',
+  'best pizza slice on this block, no contest',
+  'street is well lit and busy, easy walk back',
+  'the sunset from this corner is worth the detour',
+  'builders meetup at the fountain at 11, all welcome',
+  'merch sold out already, the tote bags went first',
+  'this hex is where tonight is happening',
+  'new mural just went up, come see it in daylight too',
   'coat check is free before midnight',
-  'set times got pushed 30 min',
-  'the visuals on the back wall 😮',
-  'met half my crew here lmao',
-  'it is LOUD loud',
-  'secret show in the back room, ask for nyx',
-  'raining, everyone inside now',
-  'line at the bodega > line at the club',
-  'just claimed epoch 6 🫡',
+  'set times moved 30 min, you have time for dinner',
+  'the visuals on the back wall are superb',
+  'ran into half the Solana crowd here, good energy',
+  'loud inside, bring earplugs if you stay long',
+  'small acoustic set in the back room from 10',
+  'raining now, everyone moved inside and it is cosy',
+  'the café next door does espresso until 2',
+  'card payments work everywhere here, no cash needed',
+  'just claimed epoch 6, rewards landed in seconds 🫡',
 ]
 
 const TOPICS = [
-  { title: 'Best late-night food around here?', text: 'Kitchen closes at 2 everywhere. Where do you go after?', replies: ['bodega on the corner does hot sandwiches till 4', 'the ramen spot two blocks down, no question', 'pizza by the slice place never closes'] },
-  { title: 'Noise from the rooftop parties', text: 'Neighbours are complaining again. Can we agree on a 1am cutoff?', replies: ['1am is fair on weeknights', 'weekends should be 2', 'just close the windows lol'] },
+  { title: 'Best late-night food around here?', text: 'Kitchen closes at 2 everywhere. Where do you go after?', replies: ['the corner deli does hot sandwiches till 4', 'the ramen spot two blocks down, no question', 'the pizza-by-the-slice place never closes'] },
+  { title: 'Noise from the rooftop parties', text: 'Neighbours are complaining again. Can we agree on a 1am cutoff?', replies: ['1am is fair on weeknights', 'weekends could stretch to 2', 'happy with that, thanks for raising it'] },
   { title: 'Lost: black film camera', text: 'Left a Contax T2 near the fountain around 11pm. Reward.', replies: ['saw someone hand one to the bar staff', 'checking the lost & found for you'] },
-  { title: 'Who is going to the warehouse thing?', text: 'Trying to put a crew together, meeting at 1am.', replies: ['in', 'in, bringing 2', 'maybe, depends on the line'] },
+  { title: 'Who is going to the warehouse show?', text: 'Putting a crew together, meeting at 1am by the main entrance.', replies: ['count me in', 'in, bringing two friends', 'likely, depends on the queue'] },
   { title: 'Street fair this Sunday', text: 'Anyone know which blocks are closing?', replies: ['avenue A between 7th and 10th'] },
 ]
 
@@ -113,10 +114,10 @@ const JOBS = [
 ]
 
 const CREW_POOL = [
-  'who\'s pregaming?', 'landing in 15', 'grabbing the back left corner',
-  'anyone got an extra wristband', 'the opener is SO good', 'meet at the bar',
-  'sending location 📍', 'this is the one tonight', 'leaving soon, afters?',
-  'hey 👋', 'just joined the crew!', 'bring a jacket it\'s cold on the roof',
+  'who is around for a pre-drink?', 'landing in 15', 'we have the back left corner',
+  'anyone have a spare wristband?', 'the opener is genuinely great', 'meet at the bar',
+  'sending my location 📍', 'this is the one tonight', 'heading out soon, afters anyone?',
+  'hey 👋', 'just joined the crew!', 'bring a jacket, it is cold on the roof',
 ]
 
 export type CityData = {
