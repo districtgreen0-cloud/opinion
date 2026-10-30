@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>OPINION · Rome cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #000; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, system-ui, sans-serif; color: #fff; }
+    #stage { position: relative; width: 1920px; height: 1080px; background: #000; }
+    .seg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; opacity: 0; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .3em; text-transform: uppercase; }
+    .display { font-family: 'Space Grotesk', Inter, sans-serif; font-weight: 700; letter-spacing: -0.04em; }
+    .sol { background: linear-gradient(90deg, #9945ff, #14f195); -webkit-background-clip: text; color: transparent; }
+    .scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.55) 0 2px, transparent 2px 5px); mix-blend-mode: multiply; }
+    .vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 50%, rgba(0,0,0,.9)); }
+    .arena { position: absolute; left: 50%; top: 50%; width: 1500px; height: 1500px; transform: translate(-50%, -50%); opacity: .42; }
+    .arena ellipse, .arena path, .arena line { fill: none; stroke: #b9b9c6; stroke-width: 1.2; }
+    /* glitch: violet + teal ghost copies slide for a few frames */
+    .g { position: relative; display: inline-block; }
+    .g::before, .g::after { content: attr(data-t); position: absolute; inset: 0; opacity: 0; }
+    .g::before { color: #c77dff; } .g::after { color: #5de0c8; }
+    .g.on::before { opacity: .9; transform: translate(-6px, 0); clip-path: inset(0 0 55% 0); }
+    .g.on::after { opacity: .9; transform: translate(6px, 0); clip-path: inset(45% 0 0 0); }
+    .g.on { color: #fff; }
+    .streak { position: absolute; height: 3px; background: #fff; box-shadow: 0 0 12px #fff; opacity: 0; }
+    .streak.v { background: #c77dff; box-shadow: 0 0 12px #c77dff; } .streak.t { background: #5de0c8; box-shadow: 0 0 12px #5de0c8; }
+    .k { font-size: 20px; color: rgba(255,255,255,.6); }
+    h1 { font-size: 170px; line-height: .92; margin: 18px 0 0; }
+    h2 { font-size: 120px; line-height: .95; margin: 14px 0 0; }
+    p.sub { font-size: 34px; margin: 26px 0 0; color: rgba(255,255,255,.8); }
+    .steps { display: flex; gap: 28px; margin-top: 60px; justify-content: center; }
+    .step { width: 330px; padding: 26px 22px; border: 1px solid rgba(255,255,255,.14); border-radius: 22px; background: rgba(255,255,255,.04); text-align: left; opacity: 0; transform: translateY(24px); }
+    .step .n { font: 700 14px 'JetBrains Mono', monospace; letter-spacing: .2em; color: #14f195; }
+    .step .t { font-size: 26px; font-weight: 600; margin-top: 8px; }
+    .step .d { font-size: 17px; color: rgba(255,255,255,.6); margin-top: 6px; line-height: 1.35; }
+    .url { display: inline-block; margin-top: 44px; padding: 18px 34px; border-radius: 999px; background: #fff; color: #000; font: 600 30px Inter, sans-serif; }
+    .logo { font-size: 150px; }
+    .logo .on { background: linear-gradient(90deg, #ececf4, #14f195); -webkit-background-clip: text; color: transparent; }
+    .hex { position: absolute; left: 50%; top: 50%; width: 520px; height: 520px; transform: translate(-50%, -50%); opacity: .18; }
+    .hex path { fill: none; stroke: url(#hexg); stroke-width: 2; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <svg class="arena" viewBox="-500 -500 1000 1000" aria-hidden="true">
+      <g id="arenaG"></g>
+    </svg>
+    <!-- 0 · intro -->
+    <section class="seg" id="intro">
+      <div>
+        <div class="k mono">OPINION · new city</div>
+        <h1 class="display"><span class="g" data-t="ROMA">ROMA</span></h1>
+        <p class="sub mono" style="letter-spacing:.4em">is live · the Colosseum, rebuilt in light</p>
+      </div>
+    </section>
+    <!-- 1 · hackathon -->
+    <section class="seg" id="hack">
+      <div>
+        <div class="k mono">Colosseum hackathon</div>
+        <h2 class="display"><span class="g" data-t="ENTER THE ARENA">ENTER THE ARENA</span></h2>
+        <p class="sub">OPINION is in the arena: a live social map where every post carries proof of place.</p>
+        <div class="steps">
+          <div class="step"><div class="n">01</div><div class="t">Find the Colosseum</div><div class="d">Fly into Roma. The hologram floats over the real amphitheatre.</div></div>
+          <div class="step"><div class="n">02</div><div class="t">Tap the arena</div><div class="d">The “Enter the Arena” slab opens the sign-up, straight from the map.</div></div>
+          <div class="step"><div class="n">03</div><div class="t">Sign up at colosseum.com</div><div class="d">Build with us. Post where you stand, from the Forum to the Tiber.</div></div>
+        </div>
+        <div class="url">colosseum.com</div>
+      </div>
+    </section>
+    <!-- 2 · outro -->
+    <section class="seg" id="outro">
+      <svg class="hex" viewBox="-100 -100 200 200" aria-hidden="true"><defs><linearGradient id="hexg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9945ff"/><stop offset="1" stop-color="#14f195"/></linearGradient></defs><path d="M 0 -90 L 78 -45 L 78 45 L 0 90 L -78 45 L -78 -45 Z"/><path d="M 0 -54 L 47 -27 L 47 27 L 0 54 L -47 27 L -47 -27 Z"/></svg>
+      <div>
+        <div class="logo display">OPINI<span class="on">ON</span></div>
+        <p class="sub mono" style="letter-spacing:.35em">Share your own · help the world · get rewarded</p>
+        <div class="url">app.useopinion.io</div>
+      </div>
+    </section>
+    <div class="scan"></div>
+    <div class="vig"></div>
+    <div id="streaks"></div>
+  </div>
+  <script type="module" src="./cards.js"></script>
+</body>
+</html>
