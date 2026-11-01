@@ -2,7 +2,7 @@ import { handleFeeds } from "./feeds";
 import { handleSports } from "./sports";
 import { earnCron, handleEarn, isAdmin } from "./earn";
 import { handleMemories } from "./memories";
-import { handleDraw, recordEntry } from "./draw";
+import { drawIsOpen, handleDraw, MIN_OPINION, recordEntry, saveXHandle } from "./draw";
 import { getResolution, isValidCell, latLngToCell } from "h3-js";
 import { HexRoom } from "./hex-room";
 import { buildTree, type Leaf } from "./merkle";
@@ -142,6 +142,49 @@ async function postComment(req: Request, env: Env, ctx: ExecutionContext, cell: 
   ctx.waitUntil(recordActivity(env, result.comment, handle, avatar));
   ctx.waitUntil(recordEntry(env, account?.id, cell, result.comment.id, text)); // hex lottery entry, if a draw is open
   return json(req, { comment: result.comment }, 201);
+}
+
+// The registration OPINION is about anything, so it can't pass the stand-in-the-hex check: it lands in the hex at the centre of the chosen city.
+const CITY_CENTRES: Record<string, [number, number]> = {
+  ldn: [51.5108, -0.1172], nyc: [40.7262, -73.9845], sf: [37.7845, -122.4005], bgd: [44.8112, 20.456], ns: [45.2551, 19.8452], rom: [41.8902, 12.4922],
+};
+
+/** POST /api/opinion: the mandatory first OPINION of an account. Enters the open draw too. Safe to call twice. */
+async function postOpinion(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  const account = await getAccount(req, env);
+  if (!account) return err(req, "sign_in_required", 401);
+  if (account.opinionAt) return json(req, { account, entered: false });
+  const body = await readJson(req);
+  const text = clean(str(body?.text) ?? "");
+  if (text.length < MIN_OPINION || text.length > 280) return err(req, "invalid_text", 400);
+
+  if (body?.xHandle) {
+    const r = await saveXHandle(env, account.id, body.xHandle);
+    if (r === "invalid") return err(req, "invalid_x_handle", 400);
+    if (r === "taken") return err(req, "x_taken", 409);
+  } else if (await drawIsOpen(env)) {
+    const row = await env.DB.prepare("SELECT x_handle FROM accounts WHERE id = ?").bind(account.id).first<{ x_handle: string | null }>();
+    if (!row?.x_handle) return err(req, "x_required", 400);
+  }
+
+  // claim first, so a double submit can't post twice
+  const now = Date.now();
+  const claim = await env.DB.prepare("UPDATE accounts SET opinion_at = ? WHERE id = ? AND opinion_at IS NULL").bind(now, account.id).run();
+  if (!claim.meta.changes) return json(req, { account: { ...account, opinionAt: now }, entered: false });
+
+  const [lat, lng] = CITY_CENTRES[str(body?.city) ?? ""] ?? CITY_CENTRES.ldn!;
+  const cell = latLngToCell(lat, lng, Number(env.H3_RES));
+  const title = text.length <= 80 ? text : text.slice(0, 79).trimEnd() + "…";
+  const input: NewComment = { kind: "topic", title, text: text.length <= 80 ? "" : text, handle: account.handle, avatar: account.avatar, accountId: account.id };
+  const result = await env.HEX_ROOM.getByName(cell).postComment(cell, input, req.headers.get("CF-Connecting-IP") ?? "unknown");
+  if (!result.ok) {
+    await env.DB.prepare("UPDATE accounts SET opinion_at = NULL WHERE id = ?").bind(account.id).run();
+    if (result.error === "invalid") return err(req, "invalid", 400, { field: result.field });
+    return err(req, "rate_limited", 429, { retryAfter: result.retryAfter }, { "Retry-After": String(result.retryAfter) });
+  }
+  ctx.waitUntil(recordActivity(env, result.comment, account.handle, account.avatar));
+  await recordEntry(env, account.id, cell, result.comment.id, text); // awaited: the app shows "You're in" straight away
+  return json(req, { account: { ...account, opinionAt: now }, cell }, 201);
 }
 
 /** Mirror into the global feed index, record hex visit, award points. */
@@ -407,6 +450,7 @@ async function route(req: Request, env: Env, ctx: ExecutionContext): Promise<Res
   if (path === "/api/events" && m === "GET") return listEvents(req, env, url);
   if (path === "/api/feed" && m === "GET") return feed(req, env);
   // every hex with posts → count, so a commented hex looks solid for all viewers (the feed only carries the newest 30)
+  if (path === "/api/opinion" && m === "POST") return postOpinion(req, env, ctx);
   if (path === "/api/hex-counts" && m === "GET") {
     const r = await env.DB.prepare("SELECT cell, COUNT(*) AS n FROM comments_index GROUP BY cell").all<{ cell: string; n: number }>();
     return json(req, { counts: Object.fromEntries(r.results.map((x) => [x.cell, x.n])) }, 200, { "Cache-Control": "public, max-age=30" });

@@ -155,7 +155,7 @@ function DrawButton() {
         🎁
         {live && !entered && <span className="live-dot absolute -top-0.5 -right-1 !h-1.5 !w-1.5" style={{ background: '#9945ff', boxShadow: '0 0 8px #9945ff' }} />}
       </span>
-      <span className="hidden whitespace-nowrap sm:inline">{draw.status === 'drawn' ? 'Winner' : entered ? 'You’re in' : 'Win a card'}</span>
+      <span className="hidden whitespace-nowrap sm:inline">{draw.status === 'drawn' ? 'Winner' : entered ? 'You’re in' : /ticket/i.test(draw.prize) ? 'Win a ticket' : 'Win a prize'}</span>
     </button>
   )
 }

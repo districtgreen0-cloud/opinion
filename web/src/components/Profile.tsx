@@ -115,7 +115,7 @@ export default function ProfileCard() {
           {[
             [info.posts.length, 'posts'],
             [info.hexes, 'hexes'],
-            [info.topics, 'topics'],
+            [info.topics, 'OPINIONS'],
             [info.jobs, 'jobs'],
           ].map(([n, l]) => (
             <div key={l}>

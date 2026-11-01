@@ -15,12 +15,12 @@ import { limitsFor, reportMemory, saveMemory, useHexMemories, type Memory } from
 
 type HexTab = 'topic' | 'note' | 'job' | 'memory'
 const TABS: { id: HexTab; label: string; empty: string }[] = [
-  { id: 'topic', label: 'Topics', empty: 'No topics yet. Start a conversation about this place.' },
+  { id: 'topic', label: 'OPINION', empty: 'No OPINION yet. Leave the first one about this place.' },
   { id: 'note', label: 'Notes', empty: 'Silence. Leave the first note in this hex.' },
   { id: 'job', label: 'Jobs', empty: 'No jobs here. Post one, paid in USDC.' },
   { id: 'memory', label: 'Memories', empty: 'No memories here yet. Capture this place.' },
 ]
-const REWARD: Record<HexTab, [number, string]> = { topic: [15, 'topic started'], note: [10, 'note dropped'], job: [10, 'job posted'], memory: [10, 'memory saved'] }
+const REWARD: Record<HexTab, [number, string]> = { topic: [15, 'OPINION posted'], note: [10, 'note dropped'], job: [10, 'job posted'], memory: [10, 'memory saved'] }
 
 export default function HexSheet() {
   const cell = useStore((s) => s.selectedCell)!
@@ -97,7 +97,7 @@ export default function HexSheet() {
       if (!text) return
       body = { ...base, kind: 'reply', parentId: topic.id, text }
     } else if (tab === 'topic') {
-      if (!title) return setErr('Give the topic a title.')
+      if (!title) return setErr('Give your OPINION a headline.')
       body = { ...base, kind: 'topic', title, text }
     } else if (tab === 'job') {
       if (!wallet) return setErr('Connect a wallet: the job is paid from it through escrow.')
@@ -174,7 +174,7 @@ export default function HexSheet() {
       {topic ? (
         <div>
           <button className="mb-3 text-[12px] text-fog hover:text-white" onClick={() => setOpenTopic(null)}>
-            ← All topics
+            ← All OPINIONS
           </button>
           <h3 className="font-display text-[18px] leading-tight font-semibold text-white">{topic.title}</h3>
           <div className="mt-1 flex items-center gap-1.5 text-[11px] text-fog">
@@ -257,7 +257,7 @@ export default function HexSheet() {
             className="space-y-2"
           >
             {(tab === 'topic' || tab === 'job') && !topic && (
-              <input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} maxLength={80} placeholder={tab === 'topic' ? 'Topic title' : 'Job title, e.g. Help carry DJ gear'} aria-label="Title" />
+              <input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} maxLength={80} placeholder={tab === 'topic' ? 'Your OPINION in one line' : 'Job title, e.g. Help carry DJ gear'} aria-label="Title" />
             )}
             <div className="flex gap-2">
               {tab === 'job' && !topic ? (
@@ -274,13 +274,13 @@ export default function HexSheet() {
                   value={f.text}
                   onChange={(e) => setF({ ...f, text: e.target.value })}
                   maxLength={topic ? 500 : tab === 'topic' ? 500 : 280}
-                  placeholder={topic ? 'Reply to this topic…' : tab === 'topic' ? 'What do you want to talk about? (optional)' : 'Leave a note in this hex…'}
-                  aria-label={topic ? 'Reply' : tab === 'topic' ? 'Topic text' : 'Comment'}
+                  placeholder={topic ? 'Reply to this OPINION…' : tab === 'topic' ? 'Tell us why (optional)' : 'Leave a note in this hex…'}
+                  aria-label={topic ? 'Reply' : tab === 'topic' ? 'OPINION text' : 'Comment'}
                 />
               )}
               {!(tab === 'job' && !topic) && (
                 <button className="btn-ember shrink-0" disabled={busy || (tab === 'topic' && !topic ? !f.title.trim() : !f.text.trim())}>
-                  {busy ? '…' : topic ? 'Reply' : tab === 'topic' ? 'Start' : 'Drop'}
+                  {busy ? '…' : topic ? 'Reply' : tab === 'topic' ? 'Post' : 'Drop'}
                 </button>
               )}
             </div>

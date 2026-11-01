@@ -17,7 +17,7 @@ export default function FeedRail() {
     <aside className="pointer-events-auto absolute top-[84px] right-4 bottom-[calc(var(--dock-h)+330px)] z-10 hidden w-[300px] flex-col lg:flex">
       <button onClick={() => setOpen((o) => !o)} className="glass mb-2 flex h-10 items-center justify-between rounded-2xl px-4 text-[12px] text-white/80">
         <span className="flex items-center gap-2">
-          <span className="live-dot" /> {filter === 'all' ? 'Live voices' : filter === 'event' ? 'Events' : filter === 'sport' ? 'Sports' : filter === 'topic' ? 'Topics' : filter === 'note' ? 'Notes' : 'Jobs'}
+          <span className="live-dot" /> {filter === 'all' ? 'Live voices' : filter === 'event' ? 'Events' : filter === 'sport' ? 'Sports' : filter === 'topic' ? 'OPINION' : filter === 'note' ? 'Notes' : 'Jobs'}
         </span>
         <Icon name="feed" className="h-4 w-4 text-fog" />
       </button>

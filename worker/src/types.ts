@@ -46,7 +46,7 @@ export type PostResult =
   | { ok: false; error: "invalid"; field: string }
   | { ok: false; error: "rate_limited"; retryAfter: number };
 
-export interface Account { id: string; email: string | null; name: string | null; picture: string | null; handle: string; avatar: string; providers: ("google" | "email")[]; createdAt: number }
+export interface Account { id: string; email: string | null; name: string | null; picture: string | null; handle: string; avatar: string; providers: ("google" | "email")[]; createdAt: number; opinionAt: number | null }
 
 /** Zero-knowledge chat relay (see zk.ts). Shared with the frontend: must match exactly. */
 export interface ZkKey { fp: string; handle: string; avatar: string; pub: { kty: 'EC'; crv: 'P-256'; x: string; y: string }; createdAt: number }

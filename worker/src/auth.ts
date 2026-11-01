@@ -47,12 +47,12 @@ function safeEqual(a: string, b: string): boolean {
 
 interface AccountRow {
   id: string; email: string | null; google_sub: string | null; name: string | null; picture: string | null;
-  handle: string; avatar: string; email_login: number; created_at: number; welcomed_at: number | null;
+  handle: string; avatar: string; email_login: number; created_at: number; welcomed_at: number | null; opinion_at: number | null;
 }
 const toAccount = (r: AccountRow): Account => ({
   id: r.id, email: r.email, name: r.name, picture: r.picture, handle: r.handle, avatar: r.avatar,
   providers: [...(r.google_sub ? (["google"] as const) : []), ...(r.email_login ? (["email"] as const) : [])],
-  createdAt: r.created_at,
+  createdAt: r.created_at, opinionAt: r.opinion_at ?? null,
 });
 
 const isUnique = (e: unknown) => /UNIQUE|constraint/i.test(String(e));

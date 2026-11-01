@@ -1,4 +1,4 @@
-// Hex lottery: pill → sheet steps (sign up · X handle · post) → "You're in" → after reveal: winner + verify. Usage: node e2e/draw.mjs [webUrl] [apiUrl]
+// Hex lottery: pill → sign up → registration OPINION + X handle → "You're in" → after reveal: winner + verify. Usage: node e2e/draw.mjs [webUrl] [apiUrl]
 import { chromium, webkit, devices } from 'playwright-core'
 const URL_ = process.argv[2] ?? 'http://localhost:4701', API = process.argv[3] ?? 'http://localhost:8787'
 const OUT = new URL('./shots/', import.meta.url).pathname
@@ -30,28 +30,14 @@ await p.getByRole('button', { name: /with email/ }).click(); await p.waitForTime
 const devCode = (await p.locator('text=/Your code:/').innerText()).match(/\d{6}/)[0]
 await p.getByRole('textbox', { name: 'Digit 1' }).click(); await p.keyboard.type(devCode); await p.waitForTimeout(300)
 await p.getByRole('button', { name: 'Verify', exact: true }).click({ timeout: 3000 }).catch(() => {}); await p.waitForTimeout(2500) // the 6th digit may auto-verify
-R.signed = await p.getByRole('button', { name: /Hex lottery/ }).count()
-await p.getByRole('button', { name: /Hex lottery/ }).click(); await p.waitForTimeout(800)
-R.step1 = (await p.locator('[role=dialog][aria-label="Hex lottery"] .grid.h-7').first().innerText()).trim()
-// step 2: X handle
-await p.getByRole('textbox', { name: 'Your X handle' }).fill('@Tester_' + Date.now().toString(36).slice(-6))
-await p.getByRole('button', { name: 'Save', exact: true }).click(); await p.waitForTimeout(1500)
-R.xSaved = await p.locator('text=/@tester_/').count()
-await p.screenshot({ path: OUT + 'draw-2-x.png' })
-// step 3: go to the map, turn on location, post in the hex
-await p.getByRole('button', { name: 'Go to the map →' }).click(); await p.waitForTimeout(500)
-await p.getByRole('button', { name: 'Turn on location' }).click(); await p.waitForTimeout(3000)
-await p.evaluate(() => window.__map.jumpTo({ center: [-0.1172, 51.5108], zoom: 17, pitch: 0, bearing: 0 })); await p.waitForTimeout(1200)
-const [x, y] = await p.evaluate(() => { const q = window.__map.project([-0.1172, 51.5108]); return [q.x, q.y] })
-await p.mouse.click(x, y); await p.waitForTimeout(900)
-const sheet = p.locator('section').first()
-await sheet.getByRole('tab', { name: /^Notes/ }).click().catch(() => {})
-await sheet.getByRole('textbox', { name: 'Comment' }).fill('the coffee at the corner is honestly underrated')
-await sheet.getByRole('button', { name: 'Drop', exact: true }).click(); await p.waitForTimeout(2500)
-await p.getByRole('button', { name: /Hex lottery/ }).click(); await p.waitForTimeout(800)
+// registration gate: the OPINION + X handle are the entry
+const gate = p.getByRole('dialog', { name: 'Leave your OPINION' })
+await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('the coffee at the corner is honestly underrated')
+await gate.getByRole('textbox', { name: 'Your X handle' }).fill('@Tester_' + Date.now().toString(36).slice(-6))
+await gate.getByRole('button', { name: /Post my OPINION/ }).click(); await p.waitForTimeout(2500)
 R.entered = await p.locator('text=You’re in').count()
-R.pillAfter = (await p.getByRole('button', { name: /Hex lottery/ }).innerText()).trim()
 await p.screenshot({ path: OUT + 'draw-3-entered.png' })
+await p.keyboard.press('Escape')
 console.log(JSON.stringify({ R, errs }))
 // wait for the window to close, reveal, reload → winner view
 await p.waitForTimeout(Math.max(0, endsAt - Date.now() + 2000))

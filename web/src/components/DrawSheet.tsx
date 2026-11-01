@@ -16,7 +16,7 @@ const left = (t: number) => {
 }
 const short = (h?: string | null) => (h ? `${h.slice(0, 10)}…${h.slice(-6)}` : '—')
 
-/** 🎁 Hex lottery: three steps (sign up · follow on X · post an opinion), live countdown, then the verifiable result. */
+/** 🎁 Hex lottery: three steps (sign up · follow on X · leave your OPINION), live countdown, then the verifiable result. */
 export default function DrawSheet() {
   const open = useStore((s) => s.drawOpen)
   const setOpen = useStore((s) => s.setDrawOpen)
@@ -89,7 +89,7 @@ export default function DrawSheet() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="font-mono text-[10px] tracking-[0.22em] text-fog uppercase">🎁 Hex lottery{draw ? ` · ${draw.status === 'drawn' ? 'drawn' : left(draw.endsAt)}` : ''}</div>
-            <h2 className="font-display mt-1 text-[22px] leading-tight font-semibold text-white">{draw?.title ?? 'Win a card'}</h2>
+            <h2 className="font-display mt-1 text-[22px] leading-tight font-semibold text-white">{draw?.title ?? 'Hex lottery'}</h2>
           </div>
           <button onClick={() => setOpen(false)} aria-label="Close" className="glass-btn grid h-8 w-8 shrink-0 place-items-center !rounded-full !p-0 text-fog">
             ✕
@@ -102,7 +102,7 @@ export default function DrawSheet() {
             <a href={xLink} target="_blank" rel="noreferrer" className="text-white underline decoration-white/30">
               @{draw ? '' : 'useopinion'} on X
             </a>{' '}
-            {LIVE ? 'to hear about the next one.' : 'and post an opinion in a hex. One person is picked by a public, verifiable draw and wins a card.'}
+            {LIVE ? 'to hear about the next one.' : 'and leave your OPINION. One person is picked by a public, verifiable draw.'}
           </p>
         ) : draw.status === 'drawn' ? (
           <>
@@ -190,7 +190,7 @@ export default function DrawSheet() {
                 </div>
                 {msg && <p className="mt-1.5 text-[11.5px] text-[#ff8a8a]">{msg}</p>}
               </Step>
-              <Step n={3} done={entered} title="Post an opinion in any hex">
+              <Step n={3} done={entered} title="Leave your OPINION">
                 {entered ? (
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] text-[#14f195]">
                     You’re in · hex {me?.cell?.slice(0, 7)}…
@@ -201,10 +201,10 @@ export default function DrawSheet() {
                     )}
                   </div>
                 ) : (
-                  <p className="mt-1 text-[12px] text-white/60">Stand somewhere, tap your hex, write at least a sentence (12+ characters). Your first opinion while the draw is open is your entry.</p>
+                  <p className="mt-1 text-[12px] text-white/60">Tap the hex you stand in and write at least 12 characters. Your first OPINION while the draw is open is your entry.</p>
                 )}
                 {!entered && signed && hasX && live && (
-                  <button onClick={() => (setOpen(false), s.toast('Tap the hex you stand in and post your opinion', 'violet'))} className="btn-black mt-2 !rounded-xl !px-3 !py-1.5 text-[12px]">
+                  <button onClick={() => (setOpen(false), s.toast('Tap the hex you stand in and post your OPINION', 'violet'))} className="btn-black mt-2 !rounded-xl !px-3 !py-1.5 text-[12px]">
                     Go to the map →
                   </button>
                 )}
@@ -213,7 +213,7 @@ export default function DrawSheet() {
             <div className="num mt-3 text-[11px] text-fog">
               {draw.entriesCount} {draw.entriesCount === 1 ? 'entry' : 'entries'} so far · ends {new Date(draw.endsAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
             </div>
-            <p className="mt-2 text-[10px] leading-snug text-white/35">The follow is checked by hand before the prize ships. Delivery is arranged by email with the winner. No purchase needed.</p>
+            <p className="mt-2 text-[10px] leading-snug text-white/35">The follow is checked by hand before the prize ships. Delivery is arranged by email with the winner. Travel and accommodation are not included. No purchase needed.</p>
           </>
         )}
       </div>

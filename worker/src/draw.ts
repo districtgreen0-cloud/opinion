@@ -14,7 +14,7 @@ import { merkleRoot, sha256Hex } from "./merkle";
 import { sendMail } from "./mail";
 
 export const X_RE = /^[a-z0-9_]{1,15}$/;
-const MIN_OPINION = 12; // characters: "nice" is not an opinion
+export const MIN_OPINION = 12; // characters: "nice" is not an opinion
 
 export interface DrawRow {
   id: string; title: string; prize: string; x_account: string; starts_at: number; ends_at: number;
@@ -87,19 +87,33 @@ async function getDraw(req: Request, env: Env): Promise<Response> {
   return json(req, { draw: { ...publicView(d), winner }, me });
 }
 
+/** True while people can enter. */
+export const drawIsOpen = async (env: Env): Promise<boolean> => {
+  const now = Date.now();
+  return !!(await env.DB.prepare("SELECT 1 FROM draws WHERE drawn_at IS NULL AND starts_at <= ? AND ends_at > ? LIMIT 1").bind(now, now).first());
+};
+
+/** Validates and stores the account's X handle. */
+export async function saveXHandle(env: Env, accountId: string, raw: unknown): Promise<"ok" | "invalid" | "taken"> {
+  const x = normX(raw);
+  if (!X_RE.test(x)) return "invalid";
+  try {
+    await env.DB.prepare("UPDATE accounts SET x_handle = ? WHERE id = ?").bind(x, accountId).run();
+  } catch (e) {
+    if (/UNIQUE/i.test(String(e))) return "taken";
+    throw e;
+  }
+  return "ok";
+}
+
 async function setX(req: Request, env: Env): Promise<Response> {
   const acc = await getAccount(req, env);
   if (!acc) return err(req, "sign_in_required", 401);
   const body = await readJson(req);
-  const x = normX(body?.xHandle);
-  if (!X_RE.test(x)) return err(req, "invalid_x_handle", 400);
-  try {
-    await env.DB.prepare("UPDATE accounts SET x_handle = ? WHERE id = ?").bind(x, acc.id).run();
-  } catch (e) {
-    if (/UNIQUE/i.test(String(e))) return err(req, "x_taken", 409);
-    throw e;
-  }
-  return json(req, { ok: true, xHandle: x });
+  const r = await saveXHandle(env, acc.id, body?.xHandle);
+  if (r === "invalid") return err(req, "invalid_x_handle", 400);
+  if (r === "taken") return err(req, "x_taken", 409);
+  return json(req, { ok: true, xHandle: normX(body?.xHandle) });
 }
 
 /** Public, privacy-safe: the frozen leaf list in draw order (hashes only). */

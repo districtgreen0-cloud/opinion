@@ -25,6 +25,7 @@ import NavSearch from './components/NavSearch'
 import DrawSheet from './components/DrawSheet'
 import ProfileCard from './components/Profile'
 import { useAuthBoot } from './hooks/useAuthBoot'
+import OpinionGate from './components/OpinionGate'
 import LiteMode, { hasWebGL2 } from './components/LiteMode'
 
 const WEBGL = hasWebGL2()
@@ -94,6 +95,7 @@ export default function App() {
       <DrawSheet />
       <ProfileCard />
       <AuthModal />
+      <OpinionGate />
       <Splash />
     </main>
   )

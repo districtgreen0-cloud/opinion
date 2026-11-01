@@ -13,6 +13,7 @@ export type Account = {
   avatar: string
   providers: ('google' | 'email')[]
   createdAt: number
+  opinionAt?: number | null
 }
 
 const RAW = import.meta.env.VITE_API_URL as string | undefined
@@ -79,6 +80,13 @@ export async function fetchMe(): Promise<Account | null> {
   if (AUTH_DEMO) return null
   const r = await call<{ account: Account }>('/api/auth/me')
   return r.ok ? r.data.account : null
+}
+
+/** The mandatory first OPINION. Demo build: stays local. */
+export async function submitOpinion(account: Account, text: string, city: string, xHandle?: string): Promise<{ ok: true; account: Account } | { ok: false; error: string }> {
+  if (AUTH_DEMO) return { ok: true, account: { ...account, opinionAt: Date.now() } }
+  const r = await call<{ account: Account }>('/api/opinion', { method: 'POST', body: JSON.stringify({ text, city, ...(xHandle ? { xHandle } : {}) }) })
+  return r.ok ? { ok: true, account: r.data.account } : { ok: false, error: r.error }
 }
 
 export async function logout(): Promise<void> {

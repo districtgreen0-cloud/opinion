@@ -42,6 +42,7 @@ export default function AuthModal() {
   const [step, setStep] = useState<Step>({ k: 'start' })
   const [mode, setMode] = useState<'in' | 'up'>('in')
   const setWallet = useStore((s) => s.setWallet)
+  const openDraw = useStore((s) => (s.draw.draw?.status === 'open' ? s.draw.draw : null))
   const [email, setEmail] = useState('')
   const [gmail, setGmail] = useState('')
   const [code, setCode] = useState(['', '', '', '', '', ''])
@@ -170,7 +171,7 @@ export default function AuthModal() {
               ))}
             </div>
             <h2 className="font-display mt-4 text-[24px] leading-tight font-semibold text-white">{mode === 'in' ? 'Welcome back.' : 'Join the map.'}</h2>
-            <p className="mt-1 text-[13px] text-white/55">{mode === 'in' ? 'Pick how you joined. No passwords.' : 'Post, earn $ON and chat. Choose one, no passwords.'}</p>
+            <p className="mt-1 text-[13px] text-white/55">{mode === 'in' ? 'Pick how you joined. No passwords.' : openDraw ? `Sign up and leave your OPINION to enter the draw for ${openDraw.prize}.` : 'Sign up, then leave your first OPINION. No passwords.'}</p>
             <button
               onClick={() => wallet()}
               disabled={busy}

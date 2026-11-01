@@ -146,7 +146,7 @@ function buildCrowd(svg: SVGSVGElement) {
     l.setAttribute('class', 'cg-edge')
     svg.appendChild(l)
   })
-  const labels = ['TOPIC', 'EVENT', 'CREW']
+  const labels = ['OPINION', 'EVENT', 'CREW']
   nodes.forEach(([x, y], i) => {
     const c = document.createElementNS(NS, 'circle')
     c.setAttribute('cx', String(x)); c.setAttribute('cy', String(y)); c.setAttribute('r', i < 3 ? '8' : '5')

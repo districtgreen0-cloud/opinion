@@ -11,7 +11,7 @@ const ITEMS: { id: F; label: string; dot: string }[] = [
   { id: 'all', label: 'All', dot: '#ffffff' },
   { id: 'event', label: 'Events', dot: '#00c2ff' },
   { id: 'sport', label: 'Sports', dot: '#ffb020' },
-  { id: 'topic', label: 'Topics', dot: '#b26bff' },
+  { id: 'topic', label: 'OPINION', dot: '#b26bff' },
   { id: 'note', label: 'Notes', dot: '#e8e8ee' },
   { id: 'job', label: 'Jobs', dot: '#3dffa8' },
 ]
