@@ -223,7 +223,7 @@ async function reveal(req: Request, env: Env, ctx: ExecutionContext): Promise<Re
   if (!d) return err(req, "no_open_draw", 404);
   const body = await readJson(req).catch(() => null);
   const r = await pickWinner(env, ctx, d, (str(body?.anchor) ?? "").trim());
-  if ("error" in r) return err(req, r.error, r.status as 404 | 409 | 503);
+  if ("error" in r) return err(req, r.error as string, r.status as number);
   return json(req, r);
 }
 
