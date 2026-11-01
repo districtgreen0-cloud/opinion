@@ -12,7 +12,7 @@ const MAX_Z = 20
 export default function ZoomRail() {
   const ready = useStore((s) => s.mapReady)
   const ui = useStore((s) => s.ui) // redraw the tape in the new ink when the theme flips
-  const hidden = useStore((s) => s.tab !== 'explore' || !!s.selectedCell || s.pickerOpen)
+  const hidden = useStore((s) => !s.entered || s.tab !== 'explore' || !!s.selectedCell || s.pickerOpen)
   // mobile: the events / sports strips sit above the dock — end the tape above them
   const strip = useStore((s) => s.tab === 'explore' && !s.selectedCell && s.entered && (s.homeFilter === 'event' || s.homeFilter === 'sport'))
   const canvas = useRef<HTMLCanvasElement>(null)

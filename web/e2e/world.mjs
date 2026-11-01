@@ -16,7 +16,13 @@ for (const [name, vp] of [['desk', { width: 1440, height: 900 }], ['phone', { wi
     await p.getByRole('textbox', { name: 'Search any city' }).fill('Bratis'); await p.waitForTimeout(1500)
     R.search = await p.getByRole('list', { name: 'Matching cities' }).innerText().catch((e) => String(e).slice(0, 80))
     await p.screenshot({ path: `${OUT}world-search.png` })
-    await p.getByRole('textbox', { name: 'Search any city' }).fill(''); await p.waitForTimeout(300)
+    R.bar = await p.getByRole('dialog', { name: 'Choose your city' }).count() + await p.getByText('Fly in →').count()
+    await p.getByRole('button', { name: /Bratislava/ }).click(); await p.waitForTimeout(1500)
+    R.fly = await p.locator('.fly-n').innerText()
+    await p.screenshot({ path: `${OUT}world-fly.png` })
+    await p.waitForTimeout(6000)
+    R.bratislava = await p.evaluate(() => +window.__map.getZoom().toFixed(1))
+    await c.close(); continue
     const xy = await p.evaluate(() => { const q = window.__map.project([2.3522, 48.8566]); return [q.x, q.y] }) // Paris
     await p.evaluate(() => window.__map.jumpTo({ center: [2.35, 48.86], zoom: 4 })); await p.waitForTimeout(800)
     const f = await p.evaluate(() => { const m = window.__map; const c = m.queryRenderedFeatures({ layers: ['capital-dot'] }).find((x) => x.properties.n === 'Paris'); const q = m.project(c.geometry.coordinates); return [q.x, q.y] })
