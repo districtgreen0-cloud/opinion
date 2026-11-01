@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useStore, type Lighting } from '../store'
 import { CITIES } from '../data/mock'
+import CyberGlobe from './CyberGlobe'
 import { disconnectWallet, SOLFLARE_ICON } from '../lib/wallet'
 import { short } from '../lib/format'
 import { Avatar, Ticker } from './bits'
@@ -33,7 +34,11 @@ export default function TopBar() {
           <span className="h-4 w-px bg-white/10" />
           <div className="relative">
             <button onClick={() => setCityOpen((o) => !o)} className="flex items-center gap-1.5 rounded-xl px-2 py-1 text-[13px] whitespace-nowrap text-white/80 hover:bg-white/5" aria-expanded={cityOpen}>
-              {entered ? city.name : '🌍 World'}
+              {entered ? city.name : (
+                <>
+                  <CyberGlobe size={20} /> World
+                </>
+              )}
               <span className="text-[9px] text-fog">▼</span>
             </button>
             {cityOpen && (
@@ -58,7 +63,8 @@ export default function TopBar() {
                   }}
                   className={`mt-1 flex w-full items-center gap-2 rounded-xl border-t border-white/10 px-3 py-2 text-left hover:bg-white/5 ${entered ? '' : 'bg-white/5'}`}
                 >
-                  <span className="text-[13px] text-white">🌍 World view</span>
+                  <CyberGlobe size={18} />
+                  <span className="text-[13px] text-white">World view</span>
                   <span className="text-[11px] text-fog">zoom out to the world map</span>
                 </button>
               </div>

@@ -22,6 +22,20 @@ for (const [name, vp] of [['desk', { width: 1440, height: 900 }], ['phone', { wi
     await p.screenshot({ path: `${OUT}world-fly.png` })
     await p.waitForTimeout(6000)
     R.bratislava = await p.evaluate(() => +window.__map.getZoom().toFixed(1))
+    await p.waitForTimeout(1200)
+    const box = p.getByRole('textbox', { name: 'Search any city' }), line = p.getByRole('button', { name: 'Open city search' })
+    R.folded = { input: await box.isVisible(), line: await line.isVisible() }
+    await p.screenshot({ path: `${OUT}search-line.png` })
+    await line.click(); await p.waitForTimeout(900)
+    R.opened = { input: await box.isVisible(), focused: await box.evaluate((e) => document.activeElement === e) }
+    await p.screenshot({ path: `${OUT}search-open.png` })
+    await p.mouse.click(500, 400); await p.waitForTimeout(900)
+    R.foldedAway = await box.isVisible()
+    await line.click(); await p.waitForTimeout(700)
+    await box.fill('Prag'); await p.waitForTimeout(1200)
+    await p.getByRole('button', { name: /Prague/ }).first().click(); await p.waitForTimeout(9000)
+    R.prague = await p.evaluate(() => [window.__map.getCenter().lng.toFixed(1), +window.__map.getZoom().toFixed(1)])
+    R.foldedAfter = await box.isVisible()
     await c.close(); continue
     const xy = await p.evaluate(() => { const q = window.__map.project([2.3522, 48.8566]); return [q.x, q.y] }) // Paris
     await p.evaluate(() => window.__map.jumpTo({ center: [2.35, 48.86], zoom: 4 })); await p.waitForTimeout(800)
