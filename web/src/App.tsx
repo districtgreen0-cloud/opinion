@@ -25,7 +25,6 @@ import NavSearch from './components/NavSearch'
 import DrawSheet from './components/DrawSheet'
 import ProfileCard from './components/Profile'
 import { useAuthBoot } from './hooks/useAuthBoot'
-import OpinionGate, { useGateOn } from './components/OpinionGate'
 import LiteMode, { hasWebGL2 } from './components/LiteMode'
 
 const WEBGL = hasWebGL2()
@@ -51,7 +50,6 @@ export default function App() {
   const crewId = useStore((s) => s.crewEventId)
   const homeFilter = useStore((s) => s.homeFilter)
   const navOn = useStore((s) => !!s.nav)
-  const gateOn = useGateOn()
 
   if (!WEBGL)
     return (
@@ -70,11 +68,11 @@ export default function App() {
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(120%_90%_at_50%_45%,transparent_55%,rgba(0,0,0,.85))]" />
       <div className="pointer-events-none absolute inset-0 z-10">
         <TopBar />
-        {tab === 'explore' && !navOn && !gateOn && <HomeTabs />}
+        {tab === 'explore' && !navOn && <HomeTabs />}
         {tab === 'explore' && <FeedRail />}
         {tab === 'explore' && homeFilter === 'event' && !cell && !navOn && <EventStrip />}
         {tab === 'explore' && homeFilter === 'sport' && !cell && !navOn && <SportsStrip />}
-        {tab === 'explore' && cell && !gateOn && <HexSheet key={cell} />}
+        {tab === 'explore' && cell && <HexSheet key={cell} />}
         <Suspense fallback={null}>
           {tab === 'events' && <EventsPanel />}
           {tab === 'crews' && <CrewsPanel key={crewId ?? 'list'} />}
@@ -96,7 +94,6 @@ export default function App() {
       <DrawSheet />
       <ProfileCard />
       <AuthModal />
-      <OpinionGate />
       <Splash />
     </main>
   )

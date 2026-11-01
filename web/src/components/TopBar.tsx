@@ -152,7 +152,7 @@ function DrawButton() {
       title={draw.title}
     >
       <span className="relative text-[15px] leading-none">
-        🎁
+        <img src="/breakpoint.png" alt="" className="h-6 w-6 rounded-[6px] object-cover ring-1 ring-white/15 sm:h-7 sm:w-7" />
         {live && !entered && <span className="live-dot absolute -top-0.5 -right-1 !h-1.5 !w-1.5" style={{ background: '#9945ff', boxShadow: '0 0 8px #9945ff' }} />}
       </span>
       <span className="hidden whitespace-nowrap sm:inline">{draw.status === 'drawn' ? 'Winner' : entered ? 'You’re in' : /ticket/i.test(draw.prize) ? 'Win a ticket' : 'Win a prize'}</span>

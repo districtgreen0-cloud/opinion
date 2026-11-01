@@ -8,7 +8,7 @@ const init = () => { sessionStorage.setItem('opinion:splash', '1'); sessionStora
 const TOKEN = process.env.TOKEN
 const adm = (p, body) => fetch(API + p, { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN, 'content-type': 'application/json' }, body: JSON.stringify(body ?? {}) }).then((r) => r.json())
 await adm('/api/draw/admin/cancel').catch(() => {}) // clear any leftover undrawn draw
-R.create = await adm('/api/draw/admin/create', { title: 'Launch week draw', prize: '1 crypto card', xAccount: 'useopinion', startsAt: Date.now(), endsAt: Date.now() + 150_000 })
+R.create = await adm('/api/draw/admin/create', { title: 'Launch week draw', prize: '1 crypto card', xAccount: 'useopinionsol', startsAt: Date.now(), endsAt: Date.now() + 150_000 })
 const endsAt = Date.now() + 150_000
 R.commit = (await adm('/api/draw/admin/commit')).commitHash?.slice(0, 12)
 const b = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
@@ -31,10 +31,10 @@ const devCode = (await p.locator('text=/Your code:/').innerText()).match(/\d{6}/
 await p.getByRole('textbox', { name: 'Digit 1' }).click(); await p.keyboard.type(devCode); await p.waitForTimeout(300)
 await p.getByRole('button', { name: 'Verify', exact: true }).click({ timeout: 3000 }).catch(() => {}); await p.waitForTimeout(2500) // the 6th digit may auto-verify
 // registration: tap a hex, leave the OPINION, then the ticket window takes the X handle
-await p.mouse.click(500, 700); await p.waitForTimeout(900)
-const gate = p.getByRole('dialog', { name: 'Leave your OPINION' })
-await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('the coffee at the corner is honestly underrated')
-await gate.getByRole('button', { name: 'Post my OPINION' }).click(); await p.waitForTimeout(2500)
+await p.evaluate(() => window.__map.jumpTo({ center: [-0.21, 51.496], zoom: 16.5, pitch: 0, bearing: 0 })); await p.waitForTimeout(1200)
+await p.mouse.click(700, 700); await p.waitForTimeout(1200)
+await p.getByRole('textbox', { name: 'Your OPINION' }).fill('the coffee at the corner is honestly underrated')
+await p.getByRole('button', { name: 'Post', exact: true }).click(); await p.waitForTimeout(2500)
 await p.getByRole('textbox', { name: 'Your X handle' }).fill('@Tester_' + Date.now().toString(36).slice(-6))
 await p.getByRole('button', { name: 'Save', exact: true }).click(); await p.waitForTimeout(1500)
 R.entered = await p.locator('text=You’re in').count()

@@ -53,7 +53,7 @@ export default function DrawSheet() {
   const entered = !!me?.entered
   const opinion = !!account?.opinionAt
   const live = draw?.status === 'open'
-  const xLink = `https://x.com/${draw?.xAccount ?? 'useopinion'}`
+  const xLink = `https://x.com/${draw?.xAccount ?? 'useopinionsol'}`
 
   const saveX = async () => {
     setBusy(true)
@@ -88,8 +88,9 @@ export default function DrawSheet() {
     <div className="fixed inset-0 z-[60] grid place-items-center bg-black/70 px-3 backdrop-blur-sm" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label="Hex lottery">
       <div ref={card} className="glass-strong scroll-thin max-h-[88vh] w-full max-w-[420px] overflow-y-auto rounded-[26px] p-5" style={{ background: 'var(--panel-solid)' }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="font-mono text-[10px] tracking-[0.22em] text-fog uppercase">🎁 Hex lottery{draw ? ` · ${draw.status === 'drawn' ? 'drawn' : left(draw.endsAt)}` : ''}</div>
+          <img src="/breakpoint.png" alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover ring-1 ring-white/15" />
+          <div className="min-w-0 flex-1">
+            <div className="font-mono text-[10px] tracking-[0.22em] text-fog uppercase">Hex lottery{draw ? ` · ${draw.status === 'drawn' ? 'drawn' : left(draw.endsAt)}` : ''}</div>
             <h2 className="font-display mt-1 text-[22px] leading-tight font-semibold text-white">{draw?.title ?? 'Hex lottery'}</h2>
           </div>
           <button onClick={() => setOpen(false)} aria-label="Close" className="glass-btn grid h-8 w-8 shrink-0 place-items-center !rounded-full !p-0 text-fog">
@@ -101,7 +102,7 @@ export default function DrawSheet() {
           <p className="mt-3 text-[13px] leading-relaxed text-white/75">
             {LIVE ? 'No draw is running right now. Follow ' : 'In the live app you sign up, follow '}
             <a href={xLink} target="_blank" rel="noreferrer" className="text-white underline decoration-white/30">
-              @{draw ? '' : 'useopinion'} on X
+              @useopinionsol on X
             </a>{' '}
             {LIVE ? 'to hear about the next one.' : 'and leave your OPINION. One person is picked by a public, verifiable draw.'}
           </p>
@@ -178,10 +179,10 @@ export default function DrawSheet() {
                 ) : opinion && !hasX ? (
                   <p className="mt-1 text-[12px] text-[#14f195]">Posted. Add your X handle below to finish your entry.</p>
                 ) : (
-                  <p className="mt-1 text-[12px] text-white/60">Tap the hex you stand in and write at least 12 characters. Your first OPINION while the draw is open is your entry.</p>
+                  <p className="mt-1 text-[12px] text-white/60">{opinion ? 'Tap the hex you stand in and post an OPINION of at least 12 characters.' : 'Tap any hex on the map and write at least 12 characters.'}</p>
                 )}
-                {!entered && signed && hasX && live && (
-                  <button onClick={() => (setOpen(false), s.toast('Tap the hex you stand in and post your OPINION', 'violet'))} className="btn-black mt-2 !rounded-xl !px-3 !py-1.5 text-[12px]">
+                {!entered && signed && (hasX || !opinion) && live && (
+                  <button onClick={() => (setOpen(false), s.toast(opinion ? 'Tap the hex you stand in and post your OPINION' : 'Tap any hex and leave your OPINION', 'violet'))} className="btn-black mt-2 !rounded-xl !px-3 !py-1.5 text-[12px]">
                     Go to the map →
                   </button>
                 )}

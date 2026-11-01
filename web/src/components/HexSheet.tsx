@@ -1,3 +1,4 @@
+import { submitOpinion } from '../lib/auth'
 import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { cityData } from '../data/mock'
@@ -32,6 +33,7 @@ export default function HexSheet() {
   const geo = useStore((s) => s.geoStatus)
   const place = useStore((s) => s.selectedPlace)
   const tab = useStore((s) => s.hexTab)
+  const account = useStore((s) => s.account)
   const s = useStore.getState
 
   const [openTopic, setOpenTopic] = useState<string | null>(null)
@@ -86,7 +88,30 @@ export default function HexSheet() {
     s().toast('Teleported · demo mode', 'ember')
   }
 
+  // A new account's first OPINION can go in any hex; every later post is location-gated.
+  const firstPost = LIVE && !!account && !account.opinionAt && tab === 'topic' && !topic
+  useEffect(() => {
+    if (LIVE && account && !account.opinionAt) s().setHexTab('topic')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account?.opinionAt])
+
+  const sendFirst = async () => {
+    if (!account) return
+    setBusy(true)
+    setErr(null)
+    const r = await submitOpinion(account, f.text.trim(), cell)
+    setBusy(false)
+    if (!r.ok) return setErr(r.error === 'rate_limited' ? 'Slow down: 5 posts per minute.' : 'Could not post. Try again.')
+    if (r.comment) s().addComment(r.comment)
+    setF({ text: '', title: '', price: '' })
+    s().setAccount(r.account)
+    s().award(...REWARD.topic)
+    await s().loadDraw()
+    if (s().draw.draw?.status === 'open') s().setDrawOpen(true)
+  }
+
   const submit = async () => {
+    if (firstPost) return sendFirst()
     if (!pos) return
     const text = f.text.trim().slice(0, 500)
     const title = f.title.trim().slice(0, 80)
@@ -248,7 +273,7 @@ export default function HexSheet() {
             </svg>
             {lim.hexTaken ? 'You saved a memory here' : !lim.left ? 'Back tomorrow' : 'Capture a memory'}
           </button>
-        ) : here ? (
+        ) : here || firstPost ? (
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -256,7 +281,7 @@ export default function HexSheet() {
             }}
             className="space-y-2"
           >
-            {(tab === 'topic' || tab === 'job') && !topic && (
+            {(tab === 'topic' || tab === 'job') && !topic && !firstPost && (
               <input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} maxLength={80} placeholder={tab === 'topic' ? 'Your OPINION in one line' : 'Job title, e.g. Help carry DJ gear'} aria-label="Title" />
             )}
             <div className="flex gap-2">
@@ -273,13 +298,13 @@ export default function HexSheet() {
                   className="input"
                   value={f.text}
                   onChange={(e) => setF({ ...f, text: e.target.value })}
-                  maxLength={topic ? 500 : tab === 'topic' ? 500 : 280}
-                  placeholder={topic ? 'Reply to this OPINION…' : tab === 'topic' ? 'Tell us why (optional)' : 'Leave a note in this hex…'}
-                  aria-label={topic ? 'Reply' : tab === 'topic' ? 'OPINION text' : 'Comment'}
+                  maxLength={firstPost ? 280 : topic ? 500 : tab === 'topic' ? 500 : 280}
+                  placeholder={firstPost ? 'Your OPINION about anything…' : topic ? 'Reply to this OPINION…' : tab === 'topic' ? 'Tell us why (optional)' : 'Leave a note in this hex…'}
+                  aria-label={firstPost ? 'Your OPINION' : topic ? 'Reply' : tab === 'topic' ? 'OPINION text' : 'Comment'}
                 />
               )}
               {!(tab === 'job' && !topic) && (
-                <button className="btn-ember shrink-0" disabled={busy || (tab === 'topic' && !topic ? !f.title.trim() : !f.text.trim())}>
+                <button className="btn-ember shrink-0" disabled={busy || (firstPost ? f.text.trim().length < 12 : tab === 'topic' && !topic ? !f.title.trim() : !f.text.trim())}>
                   {busy ? '…' : topic ? 'Reply' : tab === 'topic' ? 'Post' : 'Drop'}
                 </button>
               )}
@@ -294,7 +319,7 @@ export default function HexSheet() {
           <div className="rounded-2xl border border-dashed border-white/10 p-4 text-center">
             <div className="text-[14px] font-medium text-white">🔒 You must be here to post.</div>
             <p className="mt-1 text-[12px] text-fog">
-              {pos ? `You're ${fmtKm(dist!)} away${pos.source === 'teleport' ? ' (teleported)' : ''}.` : 'Verify your location to post topics, notes and jobs here.'}
+              {pos ? `You're ${fmtKm(dist!)} away${pos.source === 'teleport' ? ' (teleported)' : ''}.` : 'Verify your location to post OPINIONS, notes and jobs here.'}
             </p>
             <div className="mt-3 flex justify-center gap-2">
               {!pos && geo !== 'denied' && geo !== 'unavailable' && (

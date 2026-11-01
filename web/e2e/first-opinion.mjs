@@ -1,10 +1,10 @@
-// Registration gate: sign up → tap any hex → OPINION → ticket window pops up → X handle → entered. Usage: TOKEN=… node e2e/opinion-gate.mjs
+// Registration gate: no pop-up after sign up → tap any hex → OPINION in the hex sheet → ticket window → X handle → entered. Usage: TOKEN=… node e2e/opinion-gate.mjs
 import { chromium } from 'playwright-core'
 const URL_ = 'http://localhost:4701', API = 'http://localhost:8787', TOKEN = process.env.TOKEN
 const OUT = new URL('./shots/', import.meta.url).pathname
 const adm = (p, b) => fetch(API + p, { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN, 'content-type': 'application/json' }, body: JSON.stringify(b ?? {}) }).then((r) => r.json())
 await adm('/api/draw/admin/cancel').catch(() => {})
-await adm('/api/draw/admin/create', { title: 'Win a Breakpoint ticket', prize: '1 General Admission ticket to Solana Breakpoint, London, 15–17 Nov', xAccount: 'useopinion', startsAt: Date.now(), endsAt: Date.now() + 3600e3 })
+await adm('/api/draw/admin/create', { title: 'Win a Breakpoint ticket', prize: '1 General Admission ticket to Solana Breakpoint, London, 15–17 Nov', xAccount: 'useopinionsol', startsAt: Date.now(), endsAt: Date.now() + 3600e3 })
 const errs = [], R = {}
 const b = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
 const p = await (await b.newContext({ viewport: { width: 1440, height: 900 } })).newPage()
@@ -21,20 +21,14 @@ await p.getByRole('textbox', { name: 'Email' }).fill(`gate+${Date.now().toString
 await p.getByRole('button', { name: /with email/ }).click(); await p.waitForTimeout(1500)
 const code = (await p.locator('text=/Your code:/').innerText()).match(/\d{6}/)[0]
 await p.getByRole('textbox', { name: 'Digit 1' }).click(); await p.keyboard.type(code); await p.waitForTimeout(2500)
-const banner = p.getByRole('status', { name: 'Choose a hex' }), gate = p.getByRole('dialog', { name: 'Leave your OPINION' })
-R.banner = await banner.innerText()
-await p.keyboard.press('Escape')
-R.bannerAfterEsc = await banner.count()
-await p.reload(); await p.waitForFunction(() => window.__map?.loaded(), null, { timeout: 120000 }); await p.waitForTimeout(2500)
-R.bannerAfterReload = await banner.count()
+R.noPopup = await p.getByRole('dialog').count()
 await p.evaluate(() => window.__map.jumpTo({ center: [-0.21, 51.496], zoom: 16.5, pitch: 0, bearing: 0 })); await p.waitForTimeout(1200) // far from the user's GPS: any hex works
-await p.mouse.click(500, 700); await p.waitForTimeout(900)
-R.composer = await gate.count()
+await p.mouse.click(700, 700); await p.waitForTimeout(1200)
 await p.screenshot({ path: OUT + 'gate-1.png' })
-const go = gate.getByRole('button', { name: 'Post my OPINION' })
-await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('short')
+const box = p.getByRole('textbox', { name: 'Your OPINION' }), go = p.getByRole('button', { name: 'Post', exact: true })
+await box.fill('short')
 R.disabledShort = await go.isDisabled()
-await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('Bridges should be free to walk and full of music at every hour of the night.')
+await box.fill('Bridges should be free to walk and full of music at every hour of the night.')
 await go.click(); await p.waitForTimeout(2500)
 const win = p.getByRole('dialog', { name: 'Hex lottery' })
 R.windowPopped = await win.count()
@@ -47,6 +41,5 @@ const st = await p.evaluate(() => fetch('http://localhost:8787/api/draw', { cred
 R.count = st.draw.entriesCount; R.me = st.me
 R.second = await p.evaluate(() => fetch('http://localhost:8787/api/opinion', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: 'a second opinion that must not post', cell: '8a194ad3246ffff' }) }).then((r) => r.status))
 await p.reload(); await p.waitForFunction(() => window.__map?.loaded(), null, { timeout: 120000 }); await p.waitForTimeout(2000)
-R.gateAfterDone = (await banner.count()) + (await gate.count())
 await adm('/api/draw/admin/cancel')
 console.log(JSON.stringify({ R, errs }, null, 1)); await b.close()

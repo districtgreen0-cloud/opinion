@@ -360,6 +360,7 @@ export const useStore = create<State>((set, get) => ({
     save('account', account)
     set({ account, authOpen: false })
     if (account) get().setMe({ handle: account.handle, avatar: account.avatar })
+    if (account && !account.opinionAt) get().toast('Tap any hex and leave your OPINION', 'violet')
     get().loadDraw() // lottery state depends on the session
   },
 
