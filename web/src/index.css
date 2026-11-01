@@ -348,6 +348,8 @@ body,
 @keyframes sp-grid { to { background-position: 0 56px, 0 0; } }
 
 /* ── world view: city beacons on the globe */
+.you-mark { width: 16px; height: 16px; pointer-events: none; filter: drop-shadow(0 0 3px rgba(153,69,255,.8)); }
+.you-mark svg { display: block; }
 .globe-city { display: flex; align-items: center; gap: 8px; cursor: pointer; background: none; border: 0; padding: 6px; }
 .globe-city i { position: relative; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #14f195, 0 0 22px #9945ff; }
 .globe-city i::before, .globe-city i::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid #14f195; animation: gc-ping 2.4s var(--d, 0s) cubic-bezier(.16,1,.3,1) infinite; }

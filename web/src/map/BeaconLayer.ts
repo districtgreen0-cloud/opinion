@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { buildCompass, type CompassHandle } from './compassArt'
 import { MercatorCoordinate, type CustomLayerInterface, type Map as MLMap } from 'maplibre-gl'
 import type { VEvent } from '../lib/types'
 import { AVATARS, avatarSrc } from '../lib/avatars'
@@ -12,7 +11,6 @@ import { buildColosseum, type ColosseumHandle } from './colosseumArt'
  *  - a light column per venue (violet + breathing = live, mint + still = upcoming)
  *  - a floodlight cone whose brightness is crowd density
  *  - a ring of avatars orbiting live venues, tied to the column with hairlines
- *  - a light ground compass + red dot for "you" (compassArt.ts)
  * Scene units are metres: x = east, y = up, z = south.
  */
 
@@ -96,8 +94,6 @@ export class BeaconLayer implements CustomLayerInterface {
   private scale = 1
   private originMatrix = new THREE.Matrix4()
   private beacons: Beacon[] = []
-  private compass: CompassHandle | null = null
-  private heading: number | null = null
   private atlas: THREE.CanvasTexture
   private selected: string | null = null
   private clock = new THREE.Timer()
@@ -105,7 +101,6 @@ export class BeaconLayer implements CustomLayerInterface {
   private pending: { center: [number, number]; events: VEvent[]; cityId: string } | null = null
   private landmarks: LandmarkHandle | null = null
   private colosseum: ColosseumHandle | null = null
-  private userPos: [number, number] | null = null
   private dpr = Math.min(window.devicePixelRatio || 1, 2)
 
   constructor() {
@@ -162,7 +157,6 @@ export class BeaconLayer implements CustomLayerInterface {
       this.colosseum = buildColosseum((ll) => this.toLocal(ll), this.dpr)
       this.scene.add(this.colosseum.group)
     }
-    if (this.userPos) this.setUser(this.userPos)
     this.applyTheme()
     this.map.triggerRepaint()
   }
@@ -171,7 +165,6 @@ export class BeaconLayer implements CustomLayerInterface {
   private light = false
   setTheme(ui: 'dark' | 'light') {
     this.light = ui === 'light'
-    this.compass?.setLight(this.light)
     this.applyTheme()
     this.map?.triggerRepaint()
   }
@@ -190,49 +183,11 @@ export class BeaconLayer implements CustomLayerInterface {
     })
   }
 
-  /** device heading in degrees clockwise from north (null = unknown) */
-  /** red dot turns purple while you stand on an active hex */
-  private onHex = false
-  setOnHex(on: boolean) {
-    this.onHex = on
-    this.compass?.setActive(on)
-    this.map?.triggerRepaint()
-  }
-
-  setHeading(deg: number | null) {
-    this.heading = deg
-    this.compass?.setHeading(deg)
-    this.map?.triggerRepaint()
-  }
-
   setSelected(id: string | null) {
     this.selected = id
     this.landmarks?.focus(id ? (LANDMARK_EVENT[id] ?? null) : null)
     this.colosseum?.focus(id === COLOSSEUM_EVENT)
     this.map?.triggerRepaint()
-  }
-
-  setUser(lngLat: [number, number] | null) {
-    this.userPos = lngLat
-    if (!this.renderer || !this.origin) return
-    if (!lngLat) {
-      if (this.compass) {
-        this.scene.remove(this.compass.group)
-        this.compass.dispose()
-        this.compass = null
-      }
-      return
-    }
-    if (!this.compass) {
-      this.compass = buildCompass()
-      this.compass.setLight(this.light)
-      this.compass.setHeading(this.heading)
-      this.compass.setActive(this.onHex)
-      this.scene.add(this.compass.group)
-    }
-    const [x, z] = this.toLocal(lngLat)
-    this.compass.group.position.set(x, 1.2, z)
-    this.map.triggerRepaint()
   }
 
   private toLocal([lng, lat]: [number, number]): [number, number] {
@@ -391,7 +346,6 @@ export class BeaconLayer implements CustomLayerInterface {
         l.needsUpdate = true
       }
     }
-    this.compass?.tick(t, this.map.getZoom())
     this.landmarks?.tick(t)
     this.colosseum?.tick(t)
 

@@ -24,6 +24,7 @@ import { mapHandle } from './handle'
 export { mapHandle }
 
 const IS_PHONE = window.matchMedia('(pointer: coarse)').matches && Math.min(window.innerWidth, window.innerHeight) < 820
+const YOU_MARK = `<svg viewBox="0 0 400 400" width="16" height="16" aria-hidden="true"><defs><linearGradient id="you-g" x1="60" y1="40" x2="340" y2="360" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#9945FF"/><stop offset=".5" stop-color="#4E8BC4"/><stop offset="1" stop-color="#14F195"/></linearGradient></defs><polygon points="200,20 356,110 356,290 200,380 44,290 44,110" fill="#000" fill-opacity=".55" stroke="url(#you-g)" stroke-width="26" stroke-linejoin="round"/><circle cx="200" cy="200" r="112" fill="none" stroke="url(#you-g)" stroke-width="72"/></svg>`
 const WORLD_CENTER: [number, number] = [8, 24] // the whole flat world
 const WORLD_ZOOM = Math.max(0.3, Math.log2(window.innerWidth / 512))
 
@@ -158,7 +159,6 @@ export default function Map3D() {
       const s = useStore.getState()
       const d = cityData(s.city)
       beacons.setScene(s.city.center, d.events, s.city.id)
-      if (s.pos) beacons.setUser([s.pos.lng, s.pos.lat])
       setReady(true)
       setZoom(map.getZoom())
     })
@@ -332,16 +332,27 @@ export default function Map3D() {
     if (map && ready) applyLighting(map, lighting)
   }, [lighting, ready])
 
+  // "you are here": the logo, tiny, same size at every zoom
+  const youRef = useRef<maplibregl.Marker | null>(null)
   useEffect(() => {
-    beaconRef.current?.setUser(pos ? [pos.lng, pos.lat] : null)
-  }, [pos])
+    const map = mapRef.current
+    if (!map || !ready) return
+    if (!pos) {
+      youRef.current?.remove()
+      youRef.current = null
+      return
+    }
+    if (!youRef.current) {
+      const node = document.createElement('div')
+      node.className = 'you-mark'
+      node.setAttribute('aria-label', 'Your location')
+      node.innerHTML = YOU_MARK
+      youRef.current = new maplibregl.Marker({ element: node, anchor: 'center' }).setLngLat([pos.lng, pos.lat]).addTo(map)
+    } else youRef.current.setLngLat([pos.lng, pos.lat])
+  }, [pos, ready])
   useEffect(() => {
     if (ready) beaconRef.current?.setTheme(ui)
   }, [ui, ready])
-  const heading = useStore((s) => s.heading)
-  useEffect(() => {
-    beaconRef.current?.setHeading(heading)
-  }, [heading])
   useEffect(() => {
     beaconRef.current?.setSelected(selectedEventId)
   }, [selectedEventId])
@@ -379,12 +390,6 @@ export default function Map3D() {
     }
     return [...m].map(([cell, n]) => ({ cell, n }))
   }, [comments, homeFilter, data, venueGames])
-
-  // you're standing on a live hex (activity or posts) → compass dot turns purple
-  const onHex = !!myCell && (data.hexActivity.has(myCell) || commentCounts.has(myCell))
-  useEffect(() => {
-    beaconRef.current?.setOnHex(onHex)
-  }, [onHex])
 
   const footprintHexes = useMemo(() => {
     if (!footprint) return []
@@ -512,8 +517,8 @@ export default function Map3D() {
           extruded: false,
           filled: true,
           stroked: true,
-          getFillColor: (d) => (d.kind === 'me' ? [255, 90, 31, 45] : [255, 255, 255, 18]),
-          getLineColor: (d) => (d.kind === 'me' ? [255, 90, 31, 255] : [255, 255, 255, 200]),
+          getFillColor: (d) => (d.kind === 'me' ? [153, 69, 255, 40] : [255, 255, 255, 18]),
+          getLineColor: (d) => (d.kind === 'me' ? [20, 241, 149, 220] : [255, 255, 255, 200]),
           lineWidthMinPixels: 2,
           parameters: { depthWriteEnabled: false },
         }),
