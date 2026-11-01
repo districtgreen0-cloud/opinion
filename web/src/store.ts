@@ -372,7 +372,7 @@ export const useStore = create<State>((set, get) => ({
     get().loadDraw() // lottery state depends on the session
   },
 
-  setTab: (tab) => set({ tab }),
+  setTab: (tab) => (tab === 'rewards' ? get().toast('Coming soon', 'violet') : set({ tab })), // Rewards is locked for now
   setCity: (id) => {
     const city = findCity(id)!
     save('cityExtra', CITIES.some((c) => c.id === id) ? null : city)

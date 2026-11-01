@@ -33,7 +33,6 @@ const Map3D = lazy(() => import('./map/Map3D'))
 const EventsPanel = lazy(() => import('./components/EventsPanel'))
 const CrewsPanel = lazy(() => import('./components/CrewsPanel'))
 const MarketPanel = lazy(() => import('./components/MarketPanel'))
-const RewardsPanel = lazy(() => import('./components/RewardsPanel'))
 const AccountPanel = lazy(() => import('./components/AccountPanel'))
 const ChatPanel = lazy(() => import('./components/ChatPanel'))
 
@@ -78,7 +77,6 @@ export default function App() {
           {tab === 'crews' && <CrewsPanel key={crewId ?? 'list'} />}
           {tab === 'market' && <MarketPanel />}
           {tab === 'chat' && <ChatPanel />}
-          {tab === 'rewards' && <RewardsPanel />}
           {tab === 'account' && <AccountPanel />}
         </Suspense>
         <ZoomRail />
