@@ -2,17 +2,69 @@ import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { useStore } from '../store'
-import { CITIES } from '../data/mock'
+import { CITIES, cityFor, registerCity } from '../data/mock'
+import type { CityRow } from '../map/worldLayer'
 import type { City } from '../lib/types'
 import { reduced } from './bits'
 
-const META: Record<City['id'], { country: string; c: string }> = {
+const META: Record<string, { country: string; c: string }> = {
   ldn: { country: 'United Kingdom', c: '#14f195' },
   nyc: { country: 'United States', c: '#00c2ff' },
   sf: { country: 'California', c: '#ff8a1f' },
   bgd: { country: 'Srbija', c: '#e7c88c' },
   ns: { country: 'Srbija', c: '#b26bff' },
   rom: { country: 'Italia', c: '#ff6b6b' },
+}
+
+/** Find any city: the bundled list first (works offline), then Photon for everything else. */
+function CitySearch({ onPick }: { onPick: (c: City) => void }) {
+  const [q, setQ] = useState('')
+  const [rows, setRows] = useState<CityRow[]>([])
+  const [far, setFar] = useState<CityRow[]>([])
+  useEffect(() => {
+    fetch('/world/cities.json').then((r) => r.json()).then(setRows).catch(() => {})
+  }, [])
+  const needle = q.trim().toLowerCase()
+  const near = needle ? rows.filter((r) => r[0].toLowerCase().startsWith(needle)).slice(0, 5) : []
+  useEffect(() => {
+    setFar([])
+    if (needle.length < 3) return
+    const ctl = new AbortController()
+    const t = setTimeout(() => {
+      fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(needle)}&limit=6&lang=en&layer=city`, { signal: ctl.signal })
+        .then((r) => r.json())
+        .then((j: { features: { geometry: { coordinates: [number, number] }; properties: { name?: string; country?: string } }[] }) =>
+          setFar(j.features.filter((f) => f.properties.name).map((f) => [f.properties.name!, f.properties.country ?? '', f.geometry.coordinates[0], f.geometry.coordinates[1], 0])),
+        )
+        .catch(() => {})
+    }, 350)
+    return () => {
+      clearTimeout(t)
+      ctl.abort()
+    }
+  }, [needle])
+  const seen = new Set<string>()
+  const list = [...near, ...far].filter((r) => {
+    const k = `${r[0]}|${r[1]}`.toLowerCase()
+    return !seen.has(k) && !!seen.add(k)
+  }).slice(0, 6)
+  return (
+    <div className="pointer-events-auto relative w-full max-w-[340px]">
+      {list.length > 0 && (
+        <ul className="glass-strong absolute inset-x-0 bottom-full mb-2 overflow-hidden rounded-2xl p-1" style={{ background: 'var(--panel-solid)' }} aria-label="Matching cities">
+          {list.map((r) => (
+            <li key={`${r[0]}${r[1]}${r[2]}`}>
+              <button onClick={() => onPick(cityFor(r[0], r[1], r[2], r[3]))} className="flex w-full items-baseline justify-between gap-3 rounded-xl px-3 py-1.5 text-left hover:bg-white/10">
+                <span className="truncate text-[13px] text-white">{r[0]}</span>
+                <span className="shrink-0 text-[11px] text-fog">{r[1]}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <input className="input !rounded-full !py-2 text-center text-[13px]" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search any city" aria-label="Search any city" autoComplete="off" />
+    </div>
+  )
 }
 
 /** World view → one thin strip of cities: tap to preview, tap again (or Fly in) to dive into the streets. */
@@ -27,6 +79,7 @@ export default function CityPicker() {
   const root = useRef<HTMLDivElement>(null)
   const strip = useRef<HTMLDivElement>(null)
   const fly = useRef<HTMLDivElement>(null)
+  const touched = useRef(false)
 
   // the world map gets a moment on its own, then the strip rises
   useEffect(() => {
@@ -37,7 +90,7 @@ export default function CityPicker() {
 
   // the map pans to whichever city is selected
   useEffect(() => {
-    if (!open) return
+    if (!open || !touched.current) return // opening keeps the whole world in view
     const t = setTimeout(() => useStore.getState().peekCity(sel.center), 120)
     return () => clearTimeout(t)
   }, [sel, open])
@@ -79,6 +132,7 @@ export default function CityPicker() {
     gsap.to(panel, { y: 20, opacity: 0, filter: 'blur(8px)', duration: 0.35, ease: 'power2.in', onComplete: go })
   }
   const move = (d: number) => {
+    touched.current = true
     const i = CITIES.findIndex((c) => c.id === sel.id)
     setSel(CITIES[(i + d + CITIES.length) % CITIES.length]!)
   }
@@ -86,7 +140,13 @@ export default function CityPicker() {
   return (
     <>
       {open && !entered && (
-        <div ref={root} className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--dock-h)+14px)] z-40 flex justify-center px-2">
+        <div ref={root} className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--dock-h)+14px)] z-40 flex flex-col items-center gap-2 px-2">
+          <CitySearch
+            onPick={(c) => {
+              registerCity(c)
+              choose(c)
+            }}
+          />
           <div
             className="cp-panel glass-strong pointer-events-auto flex w-full max-w-[600px] items-center gap-2 rounded-full py-1.5 pr-1.5 pl-3"
             style={{ background: 'var(--panel-solid)' }}
@@ -110,11 +170,15 @@ export default function CityPicker() {
                     data-id={c.id}
                     role="option"
                     aria-selected={on}
-                    onClick={() => (on ? choose(c) : setSel(c))}
+                    onClick={() => {
+                      touched.current = true
+                      if (on) choose(c)
+                      else setSel(c)
+                    }}
                     onDoubleClick={() => choose(c)}
                     className={`cp-chip flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12.5px] font-medium whitespace-nowrap transition-[background,color,box-shadow] ${on ? 'bg-white/[.12] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.22)]' : 'text-white/60 hover:bg-white/[.06] hover:text-white'}`}
                   >
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: META[c.id].c, boxShadow: on ? `0 0 8px ${META[c.id].c}` : 'none' }} />
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: META[c.id]!.c, boxShadow: on ? `0 0 8px ${META[c.id]!.c}` : 'none' }} />
                     {c.name}
                   </button>
                 )
@@ -140,7 +204,7 @@ export default function CityPicker() {
       {flying && (
         <div ref={fly} className="pointer-events-none fixed inset-0 z-40 grid place-items-center text-center">
           <div>
-            <div className="fly-k font-mono text-[11px] tracking-[0.3em] text-white/60 uppercase">Flying in · {META[flying.id].country}</div>
+            <div className="fly-k font-mono text-[11px] tracking-[0.3em] text-white/60 uppercase">Flying in · {META[flying.id]?.country ?? flying.district}</div>
             <div className="fly-n font-display mt-2 text-[14vw] leading-none font-bold text-white [text-shadow:0_0_60px_rgba(153,69,255,.55)] md:text-[120px]">{flying.name}</div>
             <div className="fly-d mt-3 text-[13px] text-white/60">{flying.district}</div>
           </div>

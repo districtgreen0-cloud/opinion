@@ -100,7 +100,7 @@ export type Epoch = {
 }
 
 export type City = {
-  id: 'ldn' | 'nyc' | 'sf' | 'bgd' | 'ns' | 'rom'
+  id: string // the six launch cities, or 'x:<slug>' for any other city (no sample data)
   name: string
   center: [number, number] // lng, lat
   zoom: number

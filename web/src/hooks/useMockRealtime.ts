@@ -29,8 +29,8 @@ export function useMockRealtime() {
     const crew = () => {
       const s = useStore.getState()
       const d = cityData(s.city)
-      const target = s.crewEventId ?? d.events[Math.floor(Math.random() * 3)].id
-      s.addCrewMessage(randomCrewMessage(target))
+      const target = s.crewEventId ?? d.events[Math.floor(Math.random() * 3)]?.id
+      if (target) s.addCrewMessage(randomCrewMessage(target))
       timers.push(setTimeout(crew, between(6000, 10000)))
     }
     // "you are earning": +1 pt every 3s while your radar overlaps activity

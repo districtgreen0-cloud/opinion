@@ -5,6 +5,7 @@ import { H3HexagonLayer } from '@deck.gl/geo-layers'
 import { ScatterplotLayer, IconLayer, TextLayer, PolygonLayer } from '@deck.gl/layers'
 import { useStore, type HomeFilter } from '../store'
 import { buildStyle, LIGHTING, type MapLook } from '../lib/mapStyle'
+import { addWorldLayers } from './worldLayer'
 import { cityData, CITIES, COLOSSEUM_EVENT, COLOSSEUM_URL } from '../data/mock'
 import { toCell, cellCenter } from '../lib/h3'
 import { avatarSrc, avatarColor } from '../lib/avatars'
@@ -23,8 +24,8 @@ import { mapHandle } from './handle'
 export { mapHandle }
 
 const IS_PHONE = window.matchMedia('(pointer: coarse)').matches && Math.min(window.innerWidth, window.innerHeight) < 820
-const WORLD_CENTER: [number, number] = [-40, 44] // the Atlantic: London, New York, SF and Serbia in one view
-const WORLD_ZOOM = IS_PHONE ? 1.1 : 2.1
+const WORLD_CENTER: [number, number] = [8, 24] // the whole flat world
+const WORLD_ZOOM = Math.max(0.3, Math.log2(window.innerWidth / 512))
 
 const KIND_RGB: Record<HomeFilter, [number, number, number]> = {
   all: [255, 255, 255],
@@ -127,6 +128,7 @@ export default function Map3D() {
       bearing: useStore.getState().entered ? city.bearing : 0,
       maxPitch: 78,
       fadeDuration: 150,
+      renderWorldCopies: false,
       attributionControl: { compact: true },
       // phones: cap resolution at 2× and skip MSAA — a 3× canvas with three render systems can exceed iOS GPU memory
       pixelRatio: Math.min(window.devicePixelRatio || 1, IS_PHONE ? 2 : 3),
@@ -150,6 +152,7 @@ export default function Map3D() {
       map.addSource('nav-route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
       map.addLayer({ id: 'nav-casing', type: 'line', source: 'nav-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#000', 'line-opacity': 0.45, 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 6, 18, 16] } })
       map.addLayer({ id: 'nav-line', type: 'line', source: 'nav-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#14f195', 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 3, 18, 9] } })
+      addWorldLayers(map, 'nav-casing')
       useStore.getState().setMapReady()
       map.addLayer(beacons)
       const s = useStore.getState()
@@ -312,14 +315,14 @@ export default function Map3D() {
     if (!map || !ready) return
     const ms = CITIES.map((c, i) => {
       const node = document.createElement('button')
-      node.className = 'globe-city'
+      node.className = c.id === 'ns' ? 'globe-city gc-up' : 'globe-city' // Novi Sad sits right next to Beograd
       node.style.setProperty('--d', `${i * 0.37}s`)
       node.innerHTML = `<i></i><span>${c.name}</span>`
       node.addEventListener('click', (e) => {
         e.stopPropagation()
         useStore.getState().enterCity(c.id)
       })
-      return new maplibregl.Marker({ element: node, anchor: 'center' }).setLngLat(c.center).addTo(map)
+      return new maplibregl.Marker({ element: node, anchor: 'left', offset: [-11, 0] }).setLngLat(c.center).addTo(map)
     })
     return () => ms.forEach((m) => m.remove())
   }, [ready])

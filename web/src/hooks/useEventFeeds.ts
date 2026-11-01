@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useStore } from '../store'
-import { addExternalEvents } from '../data/mock'
+import { addExternalEvents, isLaunchCity } from '../data/mock'
 import { LIVE } from '../lib/api'
 import type { VEvent } from '../lib/types'
 
@@ -12,6 +12,7 @@ const PHONE = typeof window !== 'undefined' && window.matchMedia('(pointer: coar
 export function useEventFeeds() {
   const cityId = useStore((s) => s.city.id)
   useEffect(() => {
+    if (!isLaunchCity(cityId)) return
     let cancelled = false
     ;(async () => {
       try {

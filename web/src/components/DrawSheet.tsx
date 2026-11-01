@@ -155,7 +155,7 @@ export default function DrawSheet() {
         ) : (
           <>
             <p className="mt-2 text-[13px] leading-relaxed text-white/75">
-              Prize: <b className="text-white">{draw.prize}</b>. One entry per person. The winner is picked by a public draw anyone can recompute (commitment{' '}
+              Prize: <b className="text-white">{draw.prize}</b>. One entry per person. You must be eligible to travel to the UK. The winner is picked by a public draw anyone can recompute (commitment{' '}
               {draw.commitHash ? <span className="num text-white/60">{short(draw.commitHash)}</span> : 'published before entries close'}).
             </p>
             <div className="mt-4 space-y-2">
@@ -215,9 +215,9 @@ export default function DrawSheet() {
               </Step>
             </div>
             <div className="num mt-3 text-[11px] text-fog">
-              {draw.entriesCount} {draw.entriesCount === 1 ? 'entry' : 'entries'} so far · ends {new Date(draw.endsAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+              {draw.entriesCount} {draw.entriesCount === 1 ? 'entry' : 'entries'} so far · draw {new Date(draw.endsAt).toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} London time
             </div>
-            <p className="mt-2 text-[10px] leading-snug text-white/35">The follow is checked by hand before the prize ships. Delivery is arranged by email with the winner. Travel and accommodation are not included. No purchase needed.</p>
+            <p className="mt-2 text-[10px] leading-snug text-white/35">You must be eligible to travel to the UK. The follow is checked by hand before the prize ships. Delivery is arranged by email with the winner. Travel and accommodation are not included. No purchase needed.</p>
           </>
         )}
       </div>

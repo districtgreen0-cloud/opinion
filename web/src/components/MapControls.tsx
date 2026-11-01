@@ -136,7 +136,7 @@ export default function MapControls() {
           className="btn-black flex h-11 items-center gap-2 !rounded-2xl !py-0 text-[12px]"
           aria-label="Crypto cards available here"
         >
-          💳 {availableIn(CITY_COUNTRY[city.id].code).length || 'Check'} cards
+          💳 {availableIn((CITY_COUNTRY[city.id] ?? CITY_COUNTRY.ldn!).code).length || 'Check'} cards
         </button>
       <button
         onClick={() => arm(!armed)}

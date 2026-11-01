@@ -22,7 +22,7 @@ const PILL_TEXT: Record<string, string> = { available: 'Available', waitlist: 'W
 /** Crypto / neobank cards you can get in the current city's country. */
 export default function CardsTab() {
   const city = useStore((s) => s.city)
-  const [country, setCountry] = useState<CountryCode>(CITY_COUNTRY[city.id].code)
+  const [country, setCountry] = useState<CountryCode>((CITY_COUNTRY[city.id] ?? CITY_COUNTRY.ldn!).code)
   const [on, setOn] = useState<Filter[]>([])
   const [showOthers, setShowOthers] = useState(false)
   const meta = COUNTRIES.find((c) => c.code === country)!

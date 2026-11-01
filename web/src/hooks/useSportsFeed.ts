@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useStore } from '../store'
+import { isLaunchCity } from '../data/mock'
 import { LIVE } from '../lib/api'
 import type { Game } from '../lib/types'
 
@@ -10,6 +11,7 @@ const BASE = LIVE ? (RAW ?? '').replace(/\/$/, '') : ''
 export function useSportsFeed() {
   const cityId = useStore((s) => s.city.id)
   useEffect(() => {
+    if (!isLaunchCity(cityId)) return
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | undefined
     const pull = async () => {

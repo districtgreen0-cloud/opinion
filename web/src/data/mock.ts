@@ -133,9 +133,24 @@ export type CityData = {
 
 const cache = new Map<string, CityData>()
 
+// Any other city in the world: real posts only, no sample people, comments or events.
+const EXTRA = new Map<string, City>()
+export const isLaunchCity = (id: string) => CITIES.some((c) => c.id === id)
+export const findCity = (id: string) => CITIES.find((c) => c.id === id) ?? EXTRA.get(id)
+export const registerCity = (c: City) => void EXTRA.set(c.id, c)
+export function cityFor(name: string, country: string, lng: number, lat: number): City {
+  const known = CITIES.find((c) => Math.abs(c.center[0] - lng) < 0.3 && Math.abs(c.center[1] - lat) < 0.3)
+  return known ?? { id: `x:${name.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-')}:${lng.toFixed(1)}`, name, center: [lng, lat], zoom: 15.6, bearing: 0, district: country }
+}
+
 export function cityData(city: City): CityData {
   const hit = cache.get(city.id)
   if (hit) return hit
+  if (!isLaunchCity(city.id)) {
+    const empty: CityData = { events: [], comments: [], friends: [], people: [], hexActivity: new Map(), poiCells: new Set(), crews: [], listings: [] }
+    cache.set(city.id, empty)
+    return empty
+  }
   const r = rng(seedOf(city.id))
   const [clng, clat] = city.center
   const jitter = (spread: number) => (r() - 0.5) * spread
@@ -331,7 +346,7 @@ export { cellCenter }
  * memoised consumers recompute once the store swaps in a fresh `city` reference. Returns how many were new.
  */
 export function addExternalEvents(cityId: City['id'], incoming: VEvent[]): number {
-  const city = CITIES.find((c) => c.id === cityId)
+  const city = findCity(cityId)
   if (!city) return 0
   const d = cityData(city)
   const known = new Set(d.events.map((e) => e.id))

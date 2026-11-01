@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { fetchDraw, type DrawState } from './lib/draw'
 import type { City, Comment, CrewMessage, Game, Listing, Vibe } from './lib/types'
-import { CITIES, cityData, epochs } from './data/mock'
+import { CITIES, cityData, epochs, findCity, registerCity } from './data/mock'
 import { toCell, isCurrentRes, H3_RES } from './lib/h3'
 import { cellToCenterChild, getResolution, latLngToCell } from 'h3-js'
 import { uid } from './lib/format'
@@ -87,6 +87,8 @@ type State = {
   setMapReady: () => void
   setPickerOpen: (v: boolean) => void
   enterCity: (id: City['id']) => void
+  /** any city in the world */
+  openCity: (c: City) => void
   goWorld: () => void
 
   me: { handle: string; avatar: string; vibe: Vibe; ghost: boolean }
@@ -197,7 +199,9 @@ function migrateFootprint(f: Footprint | null): Footprint | null {
 }
 
 // 'city2' key: London becomes the default for everyone once (Solana week)
-const initialCity = CITIES.find((c) => c.id === load('city2', 'ldn')) ?? CITIES[0]
+const savedExtra = load<City | null>('cityExtra', null)
+if (savedExtra) registerCity(savedExtra)
+const initialCity = findCity(load('city2', 'ldn')) ?? CITIES[0]
 const seeded = (city: City) => {
   const d = cityData(city)
   return { comments: d.comments, crews: d.crews, listings: d.listings }
@@ -318,6 +322,10 @@ export const useStore = create<State>((set, get) => ({
     if (id !== get().city.id) get().setCity(id)
     set({ entered: true, pickerOpen: false })
   },
+  openCity: (c) => {
+    registerCity(c)
+    get().enterCity(c.id)
+  },
   goWorld: () => {
     try {
       sessionStorage.removeItem('opinion:entered')
@@ -366,7 +374,8 @@ export const useStore = create<State>((set, get) => ({
 
   setTab: (tab) => set({ tab }),
   setCity: (id) => {
-    const city = CITIES.find((c) => c.id === id)!
+    const city = findCity(id)!
+    save('cityExtra', CITIES.some((c) => c.id === id) ? null : city)
     save('city2', id)
     set({ city, ...seeded(city), selectedCell: null, selectedEventId: null, crewEventId: null, pos: get().pos?.source === 'gps' ? get().pos : null })
   },

@@ -196,28 +196,44 @@ async function solanaAnchor(): Promise<string | null> {
   return null;
 }
 
-async function reveal(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  if (!isAdmin(req, env)) return err(req, "forbidden", 403);
-  const d = await env.DB.prepare("SELECT * FROM draws WHERE drawn_at IS NULL ORDER BY starts_at DESC LIMIT 1").first<DrawRow>(); // the newest undrawn one
-  if (!d) return err(req, "no_open_draw", 404);
-  if (!d.seed || !d.commit_hash) return err(req, "not_committed", 409);
+/** Picks the winner of a closed, committed draw. Returns an error code, or the result. */
+async function pickWinner(env: Env, ctx: ExecutionContext, d: DrawRow, manualAnchor: string) {
+  if (!d.seed || !d.commit_hash) return { error: "not_committed", status: 409 } as const;
   const now = Date.now();
-  if (now < d.ends_at) return err(req, "still_open", 409, { endsAt: d.ends_at });
+  if (now < d.ends_at) return { error: "still_open", status: 409 } as const;
   const rows = await entriesOf(env, d.id);
-  if (!rows.length) return err(req, "no_entries", 409);
-  const body = await readJson(req).catch(() => null);
-  const anchor = (str(body?.anchor) ?? "").trim() || (await solanaAnchor());
-  if (!anchor) return err(req, "anchor_unavailable", 503);
+  if (!rows.length) return { error: "no_entries", status: 409 } as const;
+  const anchor = manualAnchor || (await solanaAnchor());
+  if (!anchor) return { error: "anchor_unavailable", status: 503 } as const;
   const leaves = await Promise.all(rows.map(leafOf));
   const root = await merkleRoot(leaves);
   const idx = Number(BigInt("0x" + (await sha256Hex(d.seed + root + anchor))) % BigInt(leaves.length));
   const winner = rows[idx]!;
   const r = await env.DB.prepare(
     "UPDATE draws SET anchor = ?, entries_root = ?, entries_count = ?, winner_index = ?, winner_account = ?, winner_leaf = ?, drawn_at = ? WHERE id = ? AND drawn_at IS NULL",
-  ).bind(anchor, root, leaves.length, idx, winner.account_id, leaves[idx], now, d.id).run();
-  if (!r.meta.changes) return err(req, "already_drawn", 409);
+  ).bind(anchor, root, leaves.length, idx, winner.account_id, leaves[idx]!, now, d.id).run();
+  if (!r.meta.changes) return { error: "already_drawn", status: 409 } as const;
   ctx.waitUntil(mailWinner(env, d, winner.account_id));
-  return json(req, { ok: true, id: d.id, anchor, entriesRoot: root, entriesCount: leaves.length, winnerIndex: idx, winnerLeaf: leaves[idx], winnerXHandle: winner.x_handle, winnerCell: winner.cell });
+  return { ok: true, id: d.id, anchor, entriesRoot: root, entriesCount: leaves.length, winnerIndex: idx, winnerLeaf: leaves[idx], winnerXHandle: winner.x_handle, winnerCell: winner.cell } as const;
+}
+
+async function reveal(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  if (!isAdmin(req, env)) return err(req, "forbidden", 403);
+  const d = await env.DB.prepare("SELECT * FROM draws WHERE drawn_at IS NULL ORDER BY starts_at DESC LIMIT 1").first<DrawRow>(); // the newest undrawn one
+  if (!d) return err(req, "no_open_draw", 404);
+  const body = await readJson(req).catch(() => null);
+  const r = await pickWinner(env, ctx, d, (str(body?.anchor) ?? "").trim());
+  if ("error" in r) return err(req, r.error, r.status as 404 | 409 | 503);
+  return json(req, r);
+}
+
+/** Cron: draws run themselves the moment they close. Later hourly runs retry if the Solana RPCs were down. */
+export async function autoReveal(env: Env, ctx: ExecutionContext): Promise<void> {
+  const due = await env.DB.prepare("SELECT * FROM draws WHERE drawn_at IS NULL AND commit_hash IS NOT NULL AND ends_at <= ? ORDER BY ends_at").bind(Date.now()).all<DrawRow>();
+  for (const d of due.results) {
+    const r = await pickWinner(env, ctx, d, "");
+    console.log(JSON.stringify({ msg: "draw_auto_reveal", id: d.id, result: "error" in r ? r.error : "drawn" }));
+  }
 }
 
 async function mailWinner(env: Env, d: DrawRow, accountId: string): Promise<void> {
@@ -225,7 +241,7 @@ async function mailWinner(env: Env, d: DrawRow, accountId: string): Promise<void
     const a = await env.DB.prepare("SELECT email, handle, x_handle FROM accounts WHERE id = ?").bind(accountId).first<{ email: string | null; handle: string; x_handle: string | null }>();
     if (!a?.email) return;
     const app = env.APP_URL || "https://app.useopinion.io";
-    const text = `Hi ${a.handle},\n\nYou won the OPINION draw "${d.title}": ${d.prize}.\n\nYour entry was picked by a public, verifiable draw (${app}/api/draw/${d.id}/proof).\n\nReply to this email from the X account @${a.x_handle ?? ""} (or DM @${d.x_account} on X from it) so we can confirm it's you and arrange delivery.\n\n— OPINION`;
+    const text = `Hi ${a.handle},\n\nYou won the OPINION draw "${d.title}": ${d.prize}.\n\nYour entry was picked by a public, verifiable draw (${app}/api/draw/${d.id}/proof).\n\nReply to this email from the X account @${a.x_handle ?? ""} (or DM @${d.x_account} on X from it) so we can confirm it's you and arrange delivery. You must be eligible to travel to the UK.\n\n— OPINION`;
     await sendMail(env, {
       to: a.email, from: env.MAIL_FROM_HELLO ?? env.EMAIL_FROM, ...(env.MAIL_REPLY_TO ? { replyTo: env.MAIL_REPLY_TO } : {}),
       subject: `You won the OPINION draw: ${d.prize}`, text,

@@ -2,7 +2,7 @@ import { handleFeeds } from "./feeds";
 import { handleSports } from "./sports";
 import { earnCron, handleEarn, isAdmin } from "./earn";
 import { handleMemories } from "./memories";
-import { handleDraw, MIN_OPINION, recordEntry } from "./draw";
+import { autoReveal, handleDraw, MIN_OPINION, recordEntry } from "./draw";
 import { getResolution, isValidCell, latLngToCell } from "h3-js";
 import { HexRoom } from "./hex-room";
 import { buildTree, type Leaf } from "./merkle";
@@ -507,7 +507,8 @@ export default {
     }
   },
   // hourly: publish Earn aggregates (≥ 24 h delay, K-anonymity, noise) and drop raw events past retention
-  async scheduled(_c: ScheduledController, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(earnCron(env).catch((e) => console.error(JSON.stringify({ msg: "earn_cron_failed", error: String(e) }))));
+  async scheduled(c: ScheduledController, env: Env, ctx: ExecutionContext) {
+    if (c.cron === "17 * * * *") ctx.waitUntil(earnCron(env).catch((e) => console.error(JSON.stringify({ msg: "earn_cron_failed", error: String(e) }))));
+    ctx.waitUntil(autoReveal(env, ctx).catch((e) => console.error(JSON.stringify({ msg: "auto_reveal_failed", error: String(e) }))));
   },
 } satisfies ExportedHandler<Env>;

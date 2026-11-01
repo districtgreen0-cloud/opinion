@@ -18,7 +18,7 @@ const POP: Record<City['id'], { pop: number; radiusKm: number }> = {
   rom: { pop: 2_750_000, radiusKm: 12 },
 }
 const TOTAL = Object.values(POP).reduce((a, c) => a + c.pop, 0)
-export const simShare = (id: City['id']) => POP[id].pop / TOTAL
+export const simShare = (id: City['id']) => (POP[id]?.pop ?? 0) / TOTAL
 export const simCount = (id: City['id'], size: SimSize) => Math.round(size * simShare(id))
 
 const PHONE = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches && Math.min(innerWidth, innerHeight) < 820
@@ -46,7 +46,7 @@ export function simPoints(city: City, size: SimSize) {
   const count = simCount(city.id, size)
   const drawn = Math.min(count, RENDER_CAP)
   const r = rng([...key].reduce((a, c) => a * 31 + c.charCodeAt(0), 7))
-  const { radiusKm } = POP[city.id]
+  const { radiusKm } = POP[city.id] ?? { radiusKm: 10 }
   const [clng, clat] = city.center
   const kmLat = 1 / 110.574
   const kmLng = 1 / (111.32 * Math.cos((clat * Math.PI) / 180))
@@ -89,7 +89,7 @@ export function simPoints(city: City, size: SimSize) {
 
 /** Zoom that fits the whole simulated town on this screen. */
 export function simZoom(city: City) {
-  const mpp = (POP[city.id].radiusKm * 2000) / (Math.min(innerWidth, innerHeight) * 0.9)
+  const mpp = ((POP[city.id]?.radiusKm ?? 10) * 2000) / (Math.min(innerWidth, innerHeight) * 0.9)
   return Math.log2((156543 * Math.cos((city.center[1] * Math.PI) / 180)) / mpp)
 }
 
