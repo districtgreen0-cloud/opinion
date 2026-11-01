@@ -132,6 +132,7 @@ export default function Map3D() {
       maxPitch: 78,
       fadeDuration: 150,
       renderWorldCopies: false,
+      minZoom: WORLD_ZOOM,
       attributionControl: { compact: true },
       // phones: cap resolution at 2× and skip MSAA — a 3× canvas with three render systems can exceed iOS GPU memory
       pixelRatio: Math.min(window.devicePixelRatio || 1, IS_PHONE ? 2 : 3),
@@ -164,7 +165,13 @@ export default function Map3D() {
       setReady(true)
       setZoom(map.getZoom())
     })
-    map.on('zoomend', () => setZoom(map.getZoom()))
+    map.on('zoomend', () => {
+      setZoom(map.getZoom())
+      // zoomed all the way out: settle on the whole world, flat and centred
+      if (map.getZoom() < WORLD_ZOOM + 1 && !map.isEasing()) {
+        map.easeTo({ center: WORLD_CENTER, pitch: 0, bearing: 0, duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 900, easing: (t) => 1 - Math.pow(1 - t, 3), essential: true })
+      }
+    })
 
     map.on('click', (e) => {
       const s = useStore.getState()
