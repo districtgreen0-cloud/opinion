@@ -5,15 +5,8 @@
       <stop offset=".5" stop-color="#4E8BC4"/>
       <stop offset="1" stop-color="#14F195"/>
     </linearGradient>
-    <linearGradient id="q" x1="165" y1="135" x2="235" y2="268" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#9945FF"/>
-      <stop offset=".5" stop-color="#4E8BC4"/>
-      <stop offset="1" stop-color="#14F195"/>
-    </linearGradient>
   </defs>
   <rect width="400" height="400" fill="#000"/>
   <polygon points="200,20 356,110 356,290 200,380 44,290 44,110" fill="none" stroke="url(#g)" stroke-width="11" stroke-linejoin="miter"/>
-  <circle cx="200" cy="200" r="118" fill="none" stroke="url(#g)" stroke-width="64"/>
-  <path d="M166 170 a34 34 0 1 1 55 27 c-13 10 -21 16 -21 26" fill="none" stroke="url(#q)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="200" cy="257" r="9.5" fill="url(#q)"/>
+  <circle cx="200" cy="207" r="118" fill="none" stroke="url(#g)" stroke-width="64"/>
 </svg>
