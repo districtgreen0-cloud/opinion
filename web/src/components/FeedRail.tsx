@@ -51,7 +51,7 @@ export default function FeedRail() {
                     </p>
                   ) : kindOf(c) === 'topic' ? (
                     <p className="text-[13px] leading-snug text-white/85">
-                      <span className="mr-1 rounded-md border border-violet/40 px-1 text-[10px] text-violet">TOPIC</span>
+                      <span className="mr-1 rounded-md border border-violet/40 px-1 text-[10px] text-violet">OPINION</span>
                       {c.title}
                     </p>
                   ) : (

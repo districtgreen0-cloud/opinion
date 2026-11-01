@@ -107,7 +107,7 @@ export default function LiteMode() {
                   <span className="text-white/80">{c.handle}</span> · {ago(c.createdAt)}
                 </div>
                 <p className="text-[13.5px] leading-snug text-white/85">
-                  {kindOf(c) === 'job' ? `💼 ${c.priceUsdc} USDC · ${c.title}` : kindOf(c) === 'topic' ? `💬 ${c.title}` : c.text}
+                  {kindOf(c) === 'job' ? `$ ${c.priceUsdc} USDC · ${c.title}` : kindOf(c) === 'topic' ? c.title : c.text}
                 </p>
               </div>
             </li>

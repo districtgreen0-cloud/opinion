@@ -24,6 +24,8 @@ import { mapHandle } from './handle'
 export { mapHandle }
 
 const IS_PHONE = window.matchMedia('(pointer: coarse)').matches && Math.min(window.innerWidth, window.innerHeight) < 820
+const OPINION_ICON = `<svg class="b-ic" viewBox="0 0 400 400" aria-hidden="true"><polygon points="200,20 356,110 356,290 200,380 44,290 44,110" fill="none" stroke="currentColor" stroke-width="26" stroke-linejoin="round"/><circle cx="200" cy="200" r="112" fill="none" stroke="currentColor" stroke-width="66"/></svg>`
+const USDC_ICON = `<svg class="b-ic b-usdc" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="16" fill="#2775CA"/><path fill="#fff" d="M20.1 18.5c0-2.2-1.3-2.9-3.9-3.2-1.9-.3-2.2-.8-2.2-1.6s.6-1.4 1.8-1.4c1 0 1.6.4 1.9 1.2.1.2.2.3.4.3h1c.2 0 .4-.2.4-.4-.3-1.3-1.2-2.2-2.7-2.5V9.5c0-.2-.2-.4-.4-.4h-.9c-.2 0-.4.2-.4.4v1.4c-1.9.3-3 1.5-3 3 0 2.1 1.3 2.9 3.9 3.2 1.7.3 2.3.7 2.3 1.7s-.9 1.6-2 1.6c-1.5 0-2.1-.6-2.3-1.5-.1-.2-.2-.3-.4-.3h-1.1c-.2 0-.4.2-.4.4.3 1.6 1.2 2.6 3.1 2.9v1.5c0 .2.2.4.4.4h.9c.2 0 .4-.2.4-.4v-1.5c2-.3 3.2-1.6 3.2-3.3z"/></svg>`
 const YOU_MARK = `<svg viewBox="0 0 400 400" width="16" height="16" aria-hidden="true"><defs><linearGradient id="you-g" x1="60" y1="40" x2="340" y2="360" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#9945FF"/><stop offset=".5" stop-color="#4E8BC4"/><stop offset="1" stop-color="#14F195"/></linearGradient></defs><polygon points="200,20 356,110 356,290 200,380 44,290 44,110" fill="#000" fill-opacity=".55" stroke="url(#you-g)" stroke-width="26" stroke-linejoin="round"/><circle cx="200" cy="200" r="112" fill="none" stroke="url(#you-g)" stroke-width="72"/></svg>`
 const WORLD_CENTER: [number, number] = [8, 24] // the whole flat world
 const WORLD_ZOOM = Math.max(0.3, Math.log2(window.innerWidth / 512))
@@ -373,7 +375,7 @@ export default function Map3D() {
 
   const jobCells = useMemo(() => {
     const m = new Map<string, number>()
-    for (const c of comments) if (kindOf(c) === 'job' && ['open', 'funded'].includes(c.jobStatus ?? 'open')) m.set(c.cell, (m.get(c.cell) ?? 0) + 1)
+    for (const c of comments) if (kindOf(c) === 'job' && ['open', 'funded', 'taken'].includes(c.jobStatus ?? 'open')) m.set(c.cell, (m.get(c.cell) ?? 0) + 1)
     return [...m].map(([cell, n]) => ({ p: cellCenter(cell), n }))
   }, [comments])
 
@@ -385,7 +387,7 @@ export default function Map3D() {
     const m = new Map<string, number>()
     for (const c of comments) {
       if (kindOf(c) !== homeFilter) continue
-      if (homeFilter === 'job' && !['open', 'funded'].includes(c.jobStatus ?? 'open')) continue
+      if (homeFilter === 'job' && !['open', 'funded', 'taken'].includes(c.jobStatus ?? 'open')) continue
       m.set(c.cell, (m.get(c.cell) ?? 0) + 1)
     }
     return [...m].map(([cell, n]) => ({ cell, n }))
@@ -742,7 +744,7 @@ export default function Map3D() {
     for (const c of comments) {
       if (kindOf(c) === 'reply' || seen.has(c.cell)) continue
       if (filter !== 'all' && kindOf(c) !== filter) continue
-      if (kindOf(c) === 'job' && !['open', 'funded'].includes(c.jobStatus ?? 'open')) continue
+      if (kindOf(c) === 'job' && !['open', 'funded', 'taken'].includes(c.jobStatus ?? 'open')) continue
       seen.add(c.cell)
       latest.push(c)
       if (latest.length >= 7) break
@@ -753,7 +755,9 @@ export default function Map3D() {
       const age = (Date.now() - c.createdAt) / 60000
       node.style.opacity = String(Math.max(0.25, 1 - age / 90))
       node.style.borderColor = avatarColor(c.avatar) + '66'
-      node.textContent = kindOf(c) === 'job' ? `💼 ${c.priceUsdc} USDC · ${c.title}` : kindOf(c) === 'topic' ? `💬 ${c.title}` : c.text
+      const kind = kindOf(c)
+      node.innerHTML = kind === 'job' ? USDC_ICON : kind === 'topic' ? OPINION_ICON : ''
+      node.append(kind === 'job' ? `${c.priceUsdc} USDC · ${c.title}` : kind === 'topic' ? (c.title ?? '') : c.text)
       if (kindOf(c) === 'job') node.style.borderColor = 'rgba(61,255,168,.45)'
       node.title = `${c.handle} · tap for profile`
       node.style.cursor = 'pointer'
