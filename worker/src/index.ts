@@ -406,6 +406,11 @@ async function route(req: Request, env: Env, ctx: ExecutionContext): Promise<Res
   if (path === "/api/health" && m === "GET") return json(req, { ok: true, service: "opinion", time: Date.now() });
   if (path === "/api/events" && m === "GET") return listEvents(req, env, url);
   if (path === "/api/feed" && m === "GET") return feed(req, env);
+  // every hex with posts → count, so a commented hex looks solid for all viewers (the feed only carries the newest 30)
+  if (path === "/api/hex-counts" && m === "GET") {
+    const r = await env.DB.prepare("SELECT cell, COUNT(*) AS n FROM comments_index GROUP BY cell").all<{ cell: string; n: number }>();
+    return json(req, { counts: Object.fromEntries(r.results.map((x) => [x.cell, x.n])) }, 200, { "Cache-Control": "public, max-age=30" });
+  }
   if (path === "/api/me" && m === "GET") return me(req, env, url);
   if (path === "/api/epochs" && m === "GET") return listEpochs(req, env);
   if (path === "/api/market" && m === "GET") return listMarket(req, env, url);

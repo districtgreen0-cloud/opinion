@@ -142,6 +142,9 @@ type State = {
   openCrew: (id: string | null) => void
   flyTo: (lng: number, lat: number, zoom?: number) => void
   addComment: (c: Comment) => void
+  /** posts per hex from the server (all viewers), merged with the local comments for hex colouring */
+  hexCounts: Record<string, number>
+  setHexCounts: (c: Record<string, number>) => void
   removeComments: (ids: string[]) => void
   upsertPost: (c: Comment) => void
   hexTab: 'topic' | 'note' | 'job' | 'memory'
@@ -397,6 +400,8 @@ export const useStore = create<State>((set, get) => ({
   openCrew: (crewEventId) => set({ crewEventId, tab: crewEventId ? 'crews' : get().tab }),
   flyTo: (lng, lat, zoom) => set({ flyTarget: { lng, lat, zoom, key: Date.now() } }),
   removeComments: (ids) => set({ comments: get().comments.filter((x) => !ids.includes(x.id) && !(x.parentId && ids.includes(x.parentId))) }),
+  hexCounts: {},
+  setHexCounts: (hexCounts) => set({ hexCounts }),
   addComment: (c) => {
     if (get().comments.some((x) => x.id === c.id)) return get().upsertPost(c)
     // notes roll off after 300; topics, replies and jobs are never evicted

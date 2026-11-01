@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useStore } from '../store'
 import { cityData, randomComment, randomCrewMessage } from '../data/mock'
-import { LIVE, fetchFeed, fetchJobs } from '../lib/api'
+import { LIVE, fetchFeed, fetchHexCounts, fetchJobs } from '../lib/api'
 import { km } from '../lib/format'
 
 const between = (a: number, b: number) => a + Math.random() * (b - a)
@@ -14,6 +14,7 @@ export function useMockRealtime() {
     if (LIVE) {
       fetchFeed().then((list) => list?.forEach((c) => useStore.getState().addComment(c)))
       fetchJobs().then((list) => list?.forEach((c) => useStore.getState().upsertPost(c)))
+      fetchHexCounts().then((c) => c && useStore.getState().setHexCounts(c))
     }
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const timers: ReturnType<typeof setTimeout>[] = []

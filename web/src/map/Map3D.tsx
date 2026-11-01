@@ -35,6 +35,8 @@ const KIND_RGB: Record<HomeFilter, [number, number, number]> = {
   job: [61, 255, 168],
 }
 
+const HEX_PURPLE: [number, number, number] = [178, 107, 255]
+
 const VIBE_RGB: Record<Friend['vibe'], [number, number, number]> = {
   out: [255, 90, 31],
   chill: [140, 140, 160],
@@ -81,6 +83,7 @@ export default function Map3D() {
   const lighting: MapLook = ui === 'light' ? 'day' : night
   const pos = useStore((s) => s.pos)
   const comments = useStore((s) => s.comments)
+  const hexCounts = useStore((s) => s.hexCounts)
   const selectedCell = useStore((s) => s.selectedCell)
   const selectedEventId = useStore((s) => s.selectedEventId)
   const flyTarget = useStore((s) => s.flyTarget)
@@ -350,8 +353,9 @@ export default function Map3D() {
   const commentCounts = useMemo(() => {
     const m = new Map<string, number>()
     for (const c of comments) m.set(c.cell, (m.get(c.cell) ?? 0) + 1)
+    for (const [cell, n] of Object.entries(hexCounts)) m.set(cell, Math.max(m.get(cell) ?? 0, n))
     return m
-  }, [comments])
+  }, [comments, hexCounts])
 
   const jobCells = useMemo(() => {
     const m = new Map<string, number>()
@@ -393,6 +397,7 @@ export default function Map3D() {
     const hexes = [...new Set([...data.hexActivity.keys(), ...commentCounts.keys()])].map((cell) => ({
       cell,
       a: Math.min(1, (data.hexActivity.get(cell) ?? 0) + (commentCounts.get(cell) ?? 0) * 0.08),
+      c: commentCounts.get(cell) ?? 0,
     }))
     const highlight = [selectedCell && { cell: selectedCell, kind: 'sel' }, myCell && { cell: myCell, kind: 'me' }].filter(Boolean) as {
       cell: string
@@ -475,12 +480,12 @@ export default function Map3D() {
           extruded: false,
           filled: true,
           stroked: true,
-          // violet → hot pink with activity (375go), kept faint so the city stays black
-          getFillColor: (d) => [Math.round(150 + 105 * d.a), Math.round(90 - 40 * d.a), Math.round(255 - 90 * d.a), Math.round((6 + d.a * 46) * (ui === 'light' ? 0.4 : 1))],
-          getLineColor: (d) => [178, 107, 255, Math.round((18 + d.a * 90) * (ui === 'light' ? 0.7 : 1))],
+          // one purple: empty hexes are almost clear, a hex people have posted in turns solid (more posts, a little stronger)
+          getFillColor: (d) => [...HEX_PURPLE, d.c ? Math.min(125, 66 + d.c * 8) : Math.round((3 + d.a * 8) * (ui === 'light' ? 0.7 : 1))] as [number, number, number, number],
+          getLineColor: (d) => [...HEX_PURPLE, d.c ? 210 : Math.round((12 + d.a * 26) * (ui === 'light' ? 0.8 : 1))] as [number, number, number, number],
           lineWidthMinPixels: 1,
           getLineWidth: 1,
-          updateTriggers: { getFillColor: [commentCounts.size, comments.length, ui], getLineColor: [comments.length, ui] },
+          updateTriggers: { getFillColor: [commentCounts, ui], getLineColor: [commentCounts, ui] },
           parameters: { depthWriteEnabled: false },
         }),
         // home tab filter: outline every hex that holds posts of the chosen kind

@@ -46,6 +46,16 @@ export async function postComment(
   }
 }
 
+export async function fetchHexCounts(): Promise<Record<string, number> | null> {
+  if (!LIVE) return null
+  try {
+    const r = await fetch(`${BASE}/api/hex-counts`)
+    return r.ok ? ((await r.json()).counts as Record<string, number>) : null
+  } catch {
+    return null
+  }
+}
+
 export async function fetchFeed(): Promise<Comment[] | null> {
   if (!LIVE) return null
   try {
