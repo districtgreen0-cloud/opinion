@@ -185,6 +185,8 @@ async function recordActivity(env: Env, c: Comment, handle: string, avatar: stri
       // keep the feed index bounded
       env.DB.prepare("DELETE FROM comments_index WHERE id NOT IN (SELECT id FROM comments_index ORDER BY created_at DESC LIMIT 1000)"),
     ];
+    stmts.push(env.DB.prepare("INSERT OR IGNORE INTO post_log (id, account_id, handle, cell, kind, title, text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(c.id, c.accountId ?? null, c.handle, c.cell, c.kind ?? "note", c.title ?? null, c.text, c.createdAt));
     if (c.wallet) {
       stmts.push(
         env.DB.prepare("INSERT INTO users (wallet, handle, avatar, points, hexes_explored, created_at) VALUES (?, ?, ?, 0, 0, ?) ON CONFLICT(wallet) DO UPDATE SET handle = excluded.handle, avatar = excluded.avatar")
@@ -461,6 +463,7 @@ async function route(req: Request, env: Env, ctx: ExecutionContext): Promise<Res
     const lower = handles.map((h) => h.toLowerCase());
     const stmts = [
       ...ids.map((id) => env.DB.prepare("DELETE FROM comments_index WHERE id = ?").bind(id)),
+      ...ids.map((id) => env.DB.prepare("DELETE FROM post_log WHERE id = ?").bind(id)),
       ...ids.map((id) => env.DB.prepare("DELETE FROM jobs WHERE id = ?").bind(id)),
       ...lower.map((h) => env.DB.prepare("DELETE FROM comments_index WHERE cell = ? AND lower(handle) = ?").bind(cell, h)),
     ];

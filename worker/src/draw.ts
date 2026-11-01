@@ -7,6 +7,7 @@
  *   4. winner:  index = sha256(seed ‖ entries_root ‖ anchor) mod n  →  leaf[index]
  * GET /api/draw/:id/proof returns everything needed to recompute it (see README).
  */
+import { cellToLatLng } from "h3-js";
 import { getAccount } from "./auth";
 import { isAdmin } from "./earn";
 import { err, json, readJson, str, clean } from "./http";
@@ -280,15 +281,70 @@ async function adminState(req: Request, env: Env): Promise<Response> {
   return json(req, { draw: { ...publicView(d), seed: d.seed, winnerAccount: d.winner_account }, entries: rows.results });
 }
 
+// ── tracker: every registrant and every post, with its hex. Admin only (contains emails).
+interface RegRow { id: string; created_at: number; handle: string; email: string | null; x_handle: string | null; google: number; opinion_at: number | null; opinion_cell: string | null; opinion: string | null; posts: number; entered: number }
+interface PostRow { id: string; created_at: number; handle: string; email: string | null; x_handle: string | null; cell: string; kind: string; title: string | null; text: string }
+
+async function registrants(env: Env): Promise<RegRow[]> {
+  const d = await current(env);
+  const r = await env.DB.prepare(
+    `SELECT a.id, a.created_at, a.handle, a.email, a.x_handle, (a.google_sub IS NOT NULL) AS google, a.opinion_at, a.opinion_cell,
+       (SELECT COALESCE(NULLIF(p.text, ''), p.title) FROM post_log p WHERE p.id = a.opinion_comment) AS opinion,
+       (SELECT COUNT(*) FROM post_log p WHERE p.account_id = a.id) AS posts,
+       EXISTS(SELECT 1 FROM draw_entries e WHERE e.draw_id = ? AND e.account_id = a.id) AS entered
+     FROM accounts a ORDER BY a.created_at DESC`,
+  ).bind(d?.id ?? "").all<RegRow>();
+  return r.results;
+}
+const posts = (env: Env, limit: number) =>
+  env.DB.prepare(
+    `SELECT p.id, p.created_at, p.handle, a.email, a.x_handle, p.cell, p.kind, p.title, p.text
+     FROM post_log p LEFT JOIN accounts a ON a.id = p.account_id ORDER BY p.created_at DESC LIMIT ?`,
+  ).bind(limit).all<PostRow>().then((r) => r.results);
+
+async function tracker(req: Request, env: Env): Promise<Response> {
+  if (!isAdmin(req, env)) return err(req, "forbidden", 403);
+  const [regs, recent, n] = await Promise.all([registrants(env), posts(env, 500), env.DB.prepare("SELECT COUNT(*) AS n FROM post_log").first<{ n: number }>()]);
+  return json(req, { registrants: regs, posts: recent, postCount: n?.n ?? 0 });
+}
+
+// quoted; text typed by users can't run as a spreadsheet formula
+const csvCell = (v: unknown) => {
+  const t = String(v ?? "");
+  const safe = typeof v === "number" || /^@[\w.]+$/.test(t) ? t : t.replace(/^[=+\-@\t\r]/, "'$&");
+  return `"${safe.replace(/"/g, '""')}"`;
+};
+const iso = (t: number | null) => (t ? new Date(t).toISOString() : "");
+const csvFile = (name: string, head: string, rows: unknown[][]) =>
+  new Response([head, ...rows.map((r) => r.map(csvCell).join(","))].join("\n"), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${name}"`, "Cache-Control": "no-store" } });
+
+async function registrantsCsv(req: Request, env: Env): Promise<Response> {
+  if (!isAdmin(req, env)) return err(req, "forbidden", 403);
+  const rows = await registrants(env);
+  return csvFile("opinion-registrants.csv", "registered,handle,email,x_handle,signup,opinion_at,hex,lat,lng,opinion,posts,in_draw", rows.map((r) => {
+    const ll = r.opinion_cell ? cellToLatLng(r.opinion_cell) : ["", ""];
+    return [iso(r.created_at), r.handle, r.email, r.x_handle, r.google ? "google" : "email", iso(r.opinion_at), r.opinion_cell, ll[0], ll[1], r.opinion, r.posts, r.entered ? "yes" : "no"];
+  }));
+}
+
+async function opinionsCsv(req: Request, env: Env): Promise<Response> {
+  if (!isAdmin(req, env)) return err(req, "forbidden", 403);
+  const rows = await posts(env, 100000);
+  return csvFile("opinion-posts.csv", "time,handle,email,x_handle,kind,hex,lat,lng,title,text", rows.map((r) => {
+    const [lat, lng] = cellToLatLng(r.cell);
+    return [iso(r.created_at), r.handle, r.email, r.x_handle, r.kind === "topic" ? "opinion" : r.kind, r.cell, lat, lng, r.title, r.text];
+  }));
+}
+
 const ADMIN_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>OPINION · Draw internal</title><style>
-:root{color-scheme:dark}body{margin:0;background:#000;color:#e8e8ee;font:13px/1.5 Inter,system-ui,sans-serif;padding:24px;max-width:960px}
+<title>OPINION · Draw + tracker</title><style>
+:root{color-scheme:dark}body{margin:0;background:#000;color:#e8e8ee;font:13px/1.5 Inter,system-ui,sans-serif;padding:24px;max-width:1280px}
 h1{font-size:18px;margin:0 0 4px}small,.m{color:#8a8a93}.m{font:11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;margin-top:18px}
 .card{border:1px solid #222;border-radius:14px;padding:14px;background:#0a0a0c;margin:12px 0}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 input,button{background:#111;border:1px solid #333;color:#fff;border-radius:10px;padding:8px 10px;font:inherit}button{cursor:pointer}button.go{background:#14f195;color:#000;border-color:#14f195;font-weight:600}
 table{width:100%;border-collapse:collapse;margin:8px 0}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid #1a1a1f;font-variant-numeric:tabular-nums}th{color:#8a8a93;font-weight:500}
 pre{white-space:pre-wrap;word-break:break-all;background:#0f0f16;border:1px solid #2a2a36;border-radius:10px;padding:10px;font-size:12px}.win{color:#14f195;font-weight:600}
-</style></head><body><h1>Draw · internal</h1><div class="m">commit → entries → reveal · every step is public and recomputable</div>
+</style></head><body><h1>Draw + tracker · internal</h1><div class="m">commit → entries → reveal · every step is public and recomputable</div>
 <form id="f" class="row" style="margin:14px 0"><input id="t" type="password" placeholder="Admin token" size="40" autocomplete="off"><button>Load</button></form>
 <div id="out"><small>Enter the admin token. It stays in this tab only.</small></div>
 <script>
@@ -304,7 +360,11 @@ if(d){h+='<div class="card"><b>'+esc(d.title)+'</b> · '+esc(d.prize)+' · follo
 +(d.commitHash?'<div class="m">Post this on X before the draw closes</div><pre>OPINION draw “'+esc(d.title)+'” · commitment sha256: '+d.commitHash+'\\nEntries close '+when(d.endsAt)+' · winner = sha256(seed ‖ entries root ‖ Solana block hash) mod n · proof: https://app.useopinion.io/api/draw/'+d.id+'/proof</pre>':'')
 +(d.status==='drawn'?'<div class="m">Result</div><pre>winner index '+d.winnerIndex+' of '+d.entriesCount+'\\nseed '+d.seed+'\\nanchor '+d.anchor+'\\nroot '+d.entriesRoot+'\\nleaf '+d.winnerLeaf+'\\nproof https://app.useopinion.io/api/draw/'+d.id+'/proof</pre>':'')+'</div>'
 +'<div class="m">Entries ('+e.length+')</div><table><tr><th>#</th><th>When</th><th>Handle</th><th>X</th><th>Hex</th></tr>'+e.map((r,i)=>'<tr'+(d.winnerIndex===i?' class="win"':'')+'><td>'+i+'</td><td>'+when(r.created_at)+'</td><td>'+esc(r.handle)+'</td><td>@'+esc(r.x_handle)+'</td><td>'+esc(r.cell)+'</td></tr>').join('')+'</table>'}
+const tr=await fetch('/api/draw/admin/tracker',{headers:H()}).then(r=>r.json());const R=tr.registrants||[],P=tr.posts||[];
+h+='<div class="m">Registrants ('+R.length+')</div><div class="row" style="margin:6px 0"><button type="button" class="dl" data-f="registrants">Registrants CSV</button><button type="button" class="dl" data-f="opinions">All OPINIONS CSV ('+tr.postCount+')</button></div><table><tr><th>Joined</th><th>Handle</th><th>Email</th><th>X</th><th>Hex</th><th>OPINION</th><th>Posts</th><th>Draw</th></tr>'+R.map(r=>'<tr><td>'+when(r.created_at)+'</td><td>'+esc(r.handle)+'</td><td>'+esc(r.email)+'</td><td>'+(r.x_handle?'@'+esc(r.x_handle):'—')+'</td><td>'+esc(r.opinion_cell||'—')+'</td><td>'+esc(r.opinion||'—')+'</td><td>'+r.posts+'</td><td>'+(r.entered?'<span class="win">in</span>':'—')+'</td></tr>').join('')+'</table>'
++'<div class="m">Latest posts ('+P.length+' of '+tr.postCount+')</div><table><tr><th>When</th><th>Handle</th><th>Kind</th><th>Hex</th><th>Text</th></tr>'+P.map(p=>'<tr><td>'+when(p.created_at)+'</td><td>'+esc(p.handle)+'</td><td>'+(p.kind==='topic'?'OPINION':esc(p.kind))+'</td><td>'+esc(p.cell)+'</td><td>'+esc(p.title?p.title+(p.text?' — '+p.text:''):p.text)+'</td></tr>').join('')+'</table>';
 $('#out').innerHTML=h;
+document.querySelectorAll('.dl').forEach(b=>b.onclick=async()=>{const r=await fetch('/api/draw/admin/'+b.dataset.f+'.csv',{headers:H()});const u=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=u;a.download='opinion-'+b.dataset.f+'.csv';a.click()});
 const mk=$('#mk');if(mk)mk.onclick=async()=>{const days=+$('#days').value||7;await call('/api/draw/admin/create',{title:$('#ti').value,prize:$('#pr').value,xAccount:$('#xa').value,startsAt:Date.now(),endsAt:Date.now()+days*86400000});load()};
 const cm=$('#cm');if(cm)cm.onclick=async()=>{await call('/api/draw/admin/commit');load()};
 const rv=$('#rv');if(rv)rv.onclick=async()=>{if(!confirm('Reveal the seed and pick the winner? This cannot be undone.'))return;const j=await call('/api/draw/admin/reveal',{anchor:$('#an').value.trim()});if(j.ok)alert('Winner: @'+j.winnerXHandle+' · hex '+j.winnerCell);load()};
@@ -324,6 +384,9 @@ export async function handleDraw(req: Request, env: Env, ctx: ExecutionContext, 
   if (path === "/api/draw/admin/reveal" && m === "POST") return reveal(req, env, ctx);
   if (path === "/api/draw/admin/cancel" && m === "POST") return cancel(req, env);
   if (path === "/api/draw/admin/entries.csv" && m === "GET") return entriesCsv(req, env);
+  if (path === "/api/draw/admin/tracker" && m === "GET") return tracker(req, env);
+  if (path === "/api/draw/admin/registrants.csv" && m === "GET") return registrantsCsv(req, env);
+  if (path === "/api/draw/admin/opinions.csv" && m === "GET") return opinionsCsv(req, env);
   const pub = path.match(/^\/api\/draw\/([a-z0-9-]{4,16})\/(entries|proof)$/);
   if (pub && m === "GET") return pub[2] === "entries" ? entries(req, env, pub[1]!) : proof(req, env, pub[1]!);
   return null;
