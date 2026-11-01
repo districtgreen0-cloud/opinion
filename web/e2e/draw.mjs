@@ -30,11 +30,13 @@ await p.getByRole('button', { name: /with email/ }).click(); await p.waitForTime
 const devCode = (await p.locator('text=/Your code:/').innerText()).match(/\d{6}/)[0]
 await p.getByRole('textbox', { name: 'Digit 1' }).click(); await p.keyboard.type(devCode); await p.waitForTimeout(300)
 await p.getByRole('button', { name: 'Verify', exact: true }).click({ timeout: 3000 }).catch(() => {}); await p.waitForTimeout(2500) // the 6th digit may auto-verify
-// registration gate: the OPINION + X handle are the entry
+// registration: tap a hex, leave the OPINION, then the ticket window takes the X handle
+await p.mouse.click(500, 700); await p.waitForTimeout(900)
 const gate = p.getByRole('dialog', { name: 'Leave your OPINION' })
 await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('the coffee at the corner is honestly underrated')
-await gate.getByRole('textbox', { name: 'Your X handle' }).fill('@Tester_' + Date.now().toString(36).slice(-6))
-await gate.getByRole('button', { name: /Post my OPINION/ }).click(); await p.waitForTimeout(2500)
+await gate.getByRole('button', { name: 'Post my OPINION' }).click(); await p.waitForTimeout(2500)
+await p.getByRole('textbox', { name: 'Your X handle' }).fill('@Tester_' + Date.now().toString(36).slice(-6))
+await p.getByRole('button', { name: 'Save', exact: true }).click(); await p.waitForTimeout(1500)
 R.entered = await p.locator('text=You’re in').count()
 await p.screenshot({ path: OUT + 'draw-3-entered.png' })
 await p.keyboard.press('Escape')

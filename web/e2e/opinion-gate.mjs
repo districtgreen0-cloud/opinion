@@ -1,4 +1,4 @@
-// Registration gate: sign up → cannot dismiss → OPINION + X handle → entered in the draw, opinion appears in the city hex. Usage: TOKEN=… node e2e/opinion-gate.mjs
+// Registration gate: sign up → tap any hex → OPINION → ticket window pops up → X handle → entered. Usage: TOKEN=… node e2e/opinion-gate.mjs
 import { chromium } from 'playwright-core'
 const URL_ = 'http://localhost:4701', API = 'http://localhost:8787', TOKEN = process.env.TOKEN
 const OUT = new URL('./shots/', import.meta.url).pathname
@@ -21,31 +21,32 @@ await p.getByRole('textbox', { name: 'Email' }).fill(`gate+${Date.now().toString
 await p.getByRole('button', { name: /with email/ }).click(); await p.waitForTimeout(1500)
 const code = (await p.locator('text=/Your code:/').innerText()).match(/\d{6}/)[0]
 await p.getByRole('textbox', { name: 'Digit 1' }).click(); await p.keyboard.type(code); await p.waitForTimeout(2500)
-const gate = p.getByRole('dialog', { name: 'Leave your OPINION' })
-R.gate = await gate.count()
-await p.keyboard.press('Escape'); await p.mouse.click(10, 10); await p.waitForTimeout(400)
-R.gateAfterEsc = await gate.count()
-await p.screenshot({ path: OUT + 'gate-1.png' })
-const go = gate.getByRole('button', { name: /Post my OPINION/ })
-await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('short')
-await gate.getByRole('textbox', { name: 'Your X handle' }).fill('@Gate_' + Date.now().toString(36).slice(-6))
-R.disabledShort = await go.isDisabled()
+const banner = p.getByRole('status', { name: 'Choose a hex' }), gate = p.getByRole('dialog', { name: 'Leave your OPINION' })
+R.banner = await banner.innerText()
+await p.keyboard.press('Escape')
+R.bannerAfterEsc = await banner.count()
 await p.reload(); await p.waitForFunction(() => window.__map?.loaded(), null, { timeout: 120000 }); await p.waitForTimeout(2500)
-R.gateAfterReload = await gate.count()
-await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('Bridges should be free to walk and full of music at every hour of the night, because a city belongs to the people who walk it, not just the ones who drive across it.')
-await gate.getByRole('textbox', { name: 'Your X handle' }).fill('@Gate_' + Date.now().toString(36).slice(-6))
+R.bannerAfterReload = await banner.count()
+await p.evaluate(() => window.__map.jumpTo({ center: [-0.21, 51.496], zoom: 16.5, pitch: 0, bearing: 0 })); await p.waitForTimeout(1200) // far from the user's GPS: any hex works
+await p.mouse.click(500, 700); await p.waitForTimeout(900)
+R.composer = await gate.count()
+await p.screenshot({ path: OUT + 'gate-1.png' })
+const go = gate.getByRole('button', { name: 'Post my OPINION' })
+await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('short')
+R.disabledShort = await go.isDisabled()
+await gate.getByRole('textbox', { name: 'Your OPINION' }).fill('Bridges should be free to walk and full of music at every hour of the night.')
 await go.click(); await p.waitForTimeout(2500)
-R.gateGone = (await gate.count()) === 0
-R.entered = await p.locator('text=You’re in').count()
+const win = p.getByRole('dialog', { name: 'Hex lottery' })
+R.windowPopped = await win.count()
+R.enteredBeforeX = await win.locator('text=You’re in').count()
+await win.getByRole('textbox', { name: 'Your X handle' }).fill('@Gate_' + Date.now().toString(36).slice(-6))
+await win.getByRole('button', { name: 'Save', exact: true }).click(); await p.waitForTimeout(1500)
+R.enteredAfterX = await win.locator('text=You’re in').count()
 await p.screenshot({ path: OUT + 'gate-2.png' })
 const st = await p.evaluate(() => fetch('http://localhost:8787/api/draw', { credentials: 'include' }).then((r) => r.json()))
 R.count = st.draw.entriesCount; R.me = st.me
-R.hex = await fetch(API + '/api/hex-counts').then((r) => r.json())
-const again = await p.evaluate(() => fetch('http://localhost:8787/api/opinion', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: 'a second opinion that must not post' }) }).then((r) => r.status))
-R.secondCall = again
-await p.reload(); await p.waitForFunction(() => window.__map?.loaded(), null, { timeout: 120000 }); await p.waitForTimeout(2500)
-R.gateAfterDone = await gate.count()
-const [cell] = Object.keys(R.hex.counts)
-if (cell) { R.posts = await fetch(`${API}/api/hex/${cell}/comments`).then((r) => r.json()).then((j) => (j.comments ?? []).map((c) => [c.kind, c.title?.length, c.text?.length])).catch((e) => String(e)) }
+R.second = await p.evaluate(() => fetch('http://localhost:8787/api/opinion', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: 'a second opinion that must not post', cell: '8a194ad3246ffff' }) }).then((r) => r.status))
+await p.reload(); await p.waitForFunction(() => window.__map?.loaded(), null, { timeout: 120000 }); await p.waitForTimeout(2000)
+R.gateAfterDone = (await banner.count()) + (await gate.count())
 await adm('/api/draw/admin/cancel')
 console.log(JSON.stringify({ R, errs }, null, 1)); await b.close()

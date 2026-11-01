@@ -1,4 +1,5 @@
 import { LIVE } from './api'
+import type { Comment } from './types'
 
 /**
  * Account sign-in: Google OAuth + email one-time code (no passwords). Backend: worker/src/auth.ts.
@@ -83,10 +84,10 @@ export async function fetchMe(): Promise<Account | null> {
 }
 
 /** The mandatory first OPINION. Demo build: stays local. */
-export async function submitOpinion(account: Account, text: string, city: string, xHandle?: string): Promise<{ ok: true; account: Account } | { ok: false; error: string }> {
+export async function submitOpinion(account: Account, text: string, cell: string): Promise<{ ok: true; account: Account; comment?: Comment } | { ok: false; error: string }> {
   if (AUTH_DEMO) return { ok: true, account: { ...account, opinionAt: Date.now() } }
-  const r = await call<{ account: Account }>('/api/opinion', { method: 'POST', body: JSON.stringify({ text, city, ...(xHandle ? { xHandle } : {}) }) })
-  return r.ok ? { ok: true, account: r.data.account } : { ok: false, error: r.error }
+  const r = await call<{ account: Account; comment?: Comment }>('/api/opinion', { method: 'POST', body: JSON.stringify({ text, cell }) })
+  return r.ok ? { ok: true, account: r.data.account, ...(r.data.comment ? { comment: r.data.comment } : {}) } : { ok: false, error: r.error }
 }
 
 export async function logout(): Promise<void> {

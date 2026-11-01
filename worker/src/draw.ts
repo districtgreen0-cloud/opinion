@@ -45,17 +45,29 @@ const entriesOf = (env: Env, id: string) =>
 export async function recordEntry(env: Env, accountId: string | undefined, cell: string, commentId: string, text: string): Promise<void> {
   try {
     if (!accountId || clean(text).length < MIN_OPINION) return;
-    const now = Date.now();
-    const d = await env.DB.prepare("SELECT id FROM draws WHERE drawn_at IS NULL AND starts_at <= ? AND ends_at > ? ORDER BY starts_at LIMIT 1").bind(now, now).first<{ id: string }>();
-    if (!d) return;
-    const acc = await env.DB.prepare("SELECT x_handle FROM accounts WHERE id = ?").bind(accountId).first<{ x_handle: string | null }>();
-    if (!acc?.x_handle) return;
-    const r = await env.DB.prepare("INSERT OR IGNORE INTO draw_entries (draw_id, account_id, x_handle, cell, comment_id, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-      .bind(d.id, accountId, acc.x_handle, cell, commentId, now).run();
-    if (r.meta.changes) await env.DB.prepare("UPDATE draws SET entries_count = entries_count + 1 WHERE id = ?").bind(d.id).run();
+    await insertEntry(env, accountId, cell, commentId);
   } catch (e) {
     console.error(JSON.stringify({ msg: "draw_entry_failed", error: String(e) }));
   }
+}
+
+async function insertEntry(env: Env, accountId: string, cell: string, commentId: string): Promise<void> {
+  const now = Date.now();
+  const d = await env.DB.prepare("SELECT id FROM draws WHERE drawn_at IS NULL AND starts_at <= ? AND ends_at > ? ORDER BY starts_at LIMIT 1").bind(now, now).first<{ id: string }>();
+  if (!d) return;
+  const acc = await env.DB.prepare("SELECT x_handle FROM accounts WHERE id = ?").bind(accountId).first<{ x_handle: string | null }>();
+  if (!acc?.x_handle) return;
+  const r = await env.DB.prepare("INSERT OR IGNORE INTO draw_entries (draw_id, account_id, x_handle, cell, comment_id, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(d.id, accountId, acc.x_handle, cell, commentId, now).run();
+  if (r.meta.changes) await env.DB.prepare("UPDATE draws SET entries_count = entries_count + 1 WHERE id = ?").bind(d.id).run();
+}
+
+/** The ticket window comes after the registration OPINION: saving the X handle turns that OPINION into the entry (if it was posted during this draw). */
+async function enterFromOpinion(env: Env, accountId: string): Promise<void> {
+  const now = Date.now();
+  const o = await env.DB.prepare("SELECT a.opinion_cell, a.opinion_comment FROM accounts a JOIN draws d ON d.drawn_at IS NULL AND d.starts_at <= a.opinion_at AND d.ends_at > ? WHERE a.id = ? AND a.opinion_comment IS NOT NULL")
+    .bind(now, accountId).first<{ opinion_cell: string; opinion_comment: string }>();
+  if (o) await insertEntry(env, accountId, o.opinion_cell, o.opinion_comment);
 }
 
 function publicView(d: DrawRow, now = Date.now()) {
@@ -87,14 +99,8 @@ async function getDraw(req: Request, env: Env): Promise<Response> {
   return json(req, { draw: { ...publicView(d), winner }, me });
 }
 
-/** True while people can enter. */
-export const drawIsOpen = async (env: Env): Promise<boolean> => {
-  const now = Date.now();
-  return !!(await env.DB.prepare("SELECT 1 FROM draws WHERE drawn_at IS NULL AND starts_at <= ? AND ends_at > ? LIMIT 1").bind(now, now).first());
-};
-
 /** Validates and stores the account's X handle. */
-export async function saveXHandle(env: Env, accountId: string, raw: unknown): Promise<"ok" | "invalid" | "taken"> {
+async function saveXHandle(env: Env, accountId: string, raw: unknown): Promise<"ok" | "invalid" | "taken"> {
   const x = normX(raw);
   if (!X_RE.test(x)) return "invalid";
   try {
@@ -113,6 +119,7 @@ async function setX(req: Request, env: Env): Promise<Response> {
   const r = await saveXHandle(env, acc.id, body?.xHandle);
   if (r === "invalid") return err(req, "invalid_x_handle", 400);
   if (r === "taken") return err(req, "x_taken", 409);
+  await enterFromOpinion(env, acc.id);
   return json(req, { ok: true, xHandle: normX(body?.xHandle) });
 }
 

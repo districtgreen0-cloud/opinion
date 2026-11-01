@@ -16,7 +16,7 @@ const left = (t: number) => {
 }
 const short = (h?: string | null) => (h ? `${h.slice(0, 10)}…${h.slice(-6)}` : '—')
 
-/** 🎁 Hex lottery: three steps (sign up · follow on X · leave your OPINION), live countdown, then the verifiable result. */
+/** 🎁 Hex lottery: three steps (sign up · leave your OPINION · follow on X), live countdown, then the verifiable result. */
 export default function DrawSheet() {
   const open = useStore((s) => s.drawOpen)
   const setOpen = useStore((s) => s.setDrawOpen)
@@ -51,6 +51,7 @@ export default function DrawSheet() {
   const signed = !LIVE || !!account
   const hasX = !!me?.xHandle
   const entered = !!me?.entered
+  const opinion = !!account?.opinionAt
   const live = draw?.status === 'open'
   const xLink = `https://x.com/${draw?.xAccount ?? 'useopinion'}`
 
@@ -164,7 +165,28 @@ export default function DrawSheet() {
                   </button>
                 )}
               </Step>
-              <Step n={2} done={hasX} title={`Follow @${draw.xAccount} on X`}>
+              <Step n={2} done={entered || opinion} title="Leave your OPINION">
+                {entered ? (
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] text-[#14f195]">
+                    You’re in · hex {me?.cell?.slice(0, 7)}…
+                    {me?.cell && (
+                      <button onClick={() => showHex(me.cell!)} className="text-white/70 underline decoration-white/25 hover:text-white">
+                        show
+                      </button>
+                    )}
+                  </div>
+                ) : opinion && !hasX ? (
+                  <p className="mt-1 text-[12px] text-[#14f195]">Posted. Add your X handle below to finish your entry.</p>
+                ) : (
+                  <p className="mt-1 text-[12px] text-white/60">Tap the hex you stand in and write at least 12 characters. Your first OPINION while the draw is open is your entry.</p>
+                )}
+                {!entered && signed && hasX && live && (
+                  <button onClick={() => (setOpen(false), s.toast('Tap the hex you stand in and post your OPINION', 'violet'))} className="btn-black mt-2 !rounded-xl !px-3 !py-1.5 text-[12px]">
+                    Go to the map →
+                  </button>
+                )}
+              </Step>
+              <Step n={3} done={hasX} title={`Follow @${draw.xAccount} on X`}>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <a href={xLink} target="_blank" rel="noreferrer" className="btn-black !rounded-xl !px-3 !py-1.5 text-[12px]">
                     𝕏 Follow @{draw.xAccount} ↗
@@ -189,25 +211,6 @@ export default function DrawSheet() {
                   {hasX && <span className="text-[12px] text-white/60">@{me?.xHandle}</span>}
                 </div>
                 {msg && <p className="mt-1.5 text-[11.5px] text-[#ff8a8a]">{msg}</p>}
-              </Step>
-              <Step n={3} done={entered} title="Leave your OPINION">
-                {entered ? (
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] text-[#14f195]">
-                    You’re in · hex {me?.cell?.slice(0, 7)}…
-                    {me?.cell && (
-                      <button onClick={() => showHex(me.cell!)} className="text-white/70 underline decoration-white/25 hover:text-white">
-                        show
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <p className="mt-1 text-[12px] text-white/60">Tap the hex you stand in and write at least 12 characters. Your first OPINION while the draw is open is your entry.</p>
-                )}
-                {!entered && signed && hasX && live && (
-                  <button onClick={() => (setOpen(false), s.toast('Tap the hex you stand in and post your OPINION', 'violet'))} className="btn-black mt-2 !rounded-xl !px-3 !py-1.5 text-[12px]">
-                    Go to the map →
-                  </button>
-                )}
               </Step>
             </div>
             <div className="num mt-3 text-[11px] text-fog">
