@@ -121,6 +121,8 @@ export default function DrawSheet() {
               )}
               {me?.won && <p className="mt-2 text-[12px] text-[#14f195]">Check your email: we need a reply from your X account to confirm and deliver.</p>}
             </div>
+            {draw.anchor !== 'manual' && (
+              <>
             <div className="num mt-3 text-[11.5px] text-fog">
               {draw.entriesCount} entries · picked #{draw.winnerIndex}
             </div>
@@ -150,6 +152,8 @@ export default function DrawSheet() {
                   Full proof + recipe ↗
                 </a>
               </div>
+            )}
+              </>
             )}
           </>
         ) : (

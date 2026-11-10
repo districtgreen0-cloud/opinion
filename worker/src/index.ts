@@ -512,6 +512,7 @@ export default {
   // hourly: publish Earn aggregates (≥ 24 h delay, K-anonymity, noise) and drop raw events past retention
   async scheduled(c: ScheduledController, env: Env, ctx: ExecutionContext) {
     if (c.cron === "17 * * * *") ctx.waitUntil(earnCron(env).catch((e) => console.error(JSON.stringify({ msg: "earn_cron_failed", error: String(e) }))));
-    ctx.waitUntil(autoReveal(env, ctx).catch((e) => console.error(JSON.stringify({ msg: "auto_reveal_failed", error: String(e) }))));
+    // automatic hash draw is off: the winner is picked with the admin slot machine (eligibility checked by hand). Re-enable: ctx.waitUntil(autoReveal(env, ctx))
+    void autoReveal;
   },
 } satisfies ExportedHandler<Env>;

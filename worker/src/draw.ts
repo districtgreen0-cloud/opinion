@@ -13,6 +13,7 @@ import { isAdmin } from "./earn";
 import { err, json, readJson, str, clean } from "./http";
 import { merkleRoot, sha256Hex } from "./merkle";
 import { sendMail } from "./mail";
+import { handleSlot } from "./slot";
 
 export const X_RE = /^[a-z0-9_]{1,15}$/;
 export const MIN_OPINION = 12; // characters: "nice" is not an opinion
@@ -29,7 +30,7 @@ export const leafOf = (e: EntryRow) => sha256Hex(`${e.draw_id}|${e.account_id}|$
 const normX = (v: unknown) => (str(v) ?? "").trim().replace(/^@/, "").toLowerCase();
 
 /** The draw people can enter now, else the most recent one (so the winner stays visible). */
-async function current(env: Env): Promise<DrawRow | null> {
+export async function current(env: Env): Promise<DrawRow | null> {
   const now = Date.now();
   return (
     (await env.DB.prepare("SELECT * FROM draws WHERE drawn_at IS NULL AND ends_at > ? ORDER BY starts_at LIMIT 1").bind(now).first<DrawRow>()) ??
@@ -93,7 +94,7 @@ async function getDraw(req: Request, env: Env): Promise<Response> {
     me = { xHandle: row?.x_handle ?? null, entered: !!e, cell: e?.cell ?? null, enteredAt: e?.created_at ?? null, won: !!d.winner_account && d.winner_account === acc.id };
   }
   if (d.drawn_at && d.winner_account) {
-    const w = await env.DB.prepare("SELECT a.handle, a.avatar, e.x_handle, e.cell FROM draw_entries e JOIN accounts a ON a.id = e.account_id WHERE e.draw_id = ? AND e.account_id = ?")
+    const w = await env.DB.prepare("SELECT a.handle, a.avatar, COALESCE(e.x_handle, a.x_handle) AS x_handle, COALESCE(e.cell, a.opinion_cell) AS cell FROM accounts a LEFT JOIN draw_entries e ON e.account_id = a.id AND e.draw_id = ? WHERE a.id = ?")
       .bind(d.id, d.winner_account).first<{ handle: string; avatar: string; x_handle: string; cell: string }>();
     if (w) winner = { handle: w.handle, avatar: w.avatar, xHandle: w.x_handle, cell: w.cell };
   }
@@ -237,12 +238,12 @@ export async function autoReveal(env: Env, ctx: ExecutionContext): Promise<void>
   }
 }
 
-async function mailWinner(env: Env, d: DrawRow, accountId: string): Promise<void> {
+export async function mailWinner(env: Env, d: DrawRow, accountId: string, manual = false): Promise<void> {
   try {
     const a = await env.DB.prepare("SELECT email, handle, x_handle FROM accounts WHERE id = ?").bind(accountId).first<{ email: string | null; handle: string; x_handle: string | null }>();
     if (!a?.email) return;
     const app = env.APP_URL || "https://app.useopinion.io";
-    const text = `Hi ${a.handle},\n\nYou won the OPINION draw "${d.title}": ${d.prize}.\n\nYour entry was picked by a public, verifiable draw (${app}/api/draw/${d.id}/proof).\n\nReply to this email from the X account @${a.x_handle ?? ""} (or DM @${d.x_account} on X from it) so we can confirm it's you and arrange delivery. You must be eligible to travel to the UK.\n\n— OPINION`;
+    const text = `Hi ${a.handle},\n\nYou won the OPINION draw "${d.title}": ${d.prize}.\n\n${manual ? "" : `Your entry was picked by a public, verifiable draw (${app}/api/draw/${d.id}/proof).\n\n`}Reply to this email from the X account @${a.x_handle ?? ""} (or DM @${d.x_account} on X from it) so we can confirm it's you and arrange delivery. You must be eligible to travel to the UK.\n\n— OPINION`;
     await sendMail(env, {
       to: a.email, from: env.MAIL_FROM_HELLO ?? env.EMAIL_FROM, ...(env.MAIL_REPLY_TO ? { replyTo: env.MAIL_REPLY_TO } : {}),
       subject: `You won the OPINION draw: ${d.prize}`, text,
@@ -344,7 +345,7 @@ h1{font-size:18px;margin:0 0 4px}small,.m{color:#8a8a93}.m{font:11px ui-monospac
 input,button{background:#111;border:1px solid #333;color:#fff;border-radius:10px;padding:8px 10px;font:inherit}button{cursor:pointer}button.go{background:#14f195;color:#000;border-color:#14f195;font-weight:600}
 table{width:100%;border-collapse:collapse;margin:8px 0}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid #1a1a1f;font-variant-numeric:tabular-nums}th{color:#8a8a93;font-weight:500}
 pre{white-space:pre-wrap;word-break:break-all;background:#0f0f16;border:1px solid #2a2a36;border-radius:10px;padding:10px;font-size:12px}.win{color:#14f195;font-weight:600}
-</style></head><body><h1>Draw + tracker · internal</h1><div class="m">commit → entries → reveal · every step is public and recomputable</div>
+</style></head><body><h1>Draw + tracker · internal</h1><a href="/api/draw/admin/slot" style="color:#14f195">🎰 Slot machine →</a><div class="m">commit → entries → reveal · every step is public and recomputable</div>
 <form id="f" class="row" style="margin:14px 0"><input id="t" type="password" placeholder="Admin token" size="40" autocomplete="off"><button>Load</button></form>
 <div id="out"><small>Enter the admin token. It stays in this tab only.</small></div>
 <script>
@@ -385,6 +386,8 @@ export async function handleDraw(req: Request, env: Env, ctx: ExecutionContext, 
   if (path === "/api/draw/admin/cancel" && m === "POST") return cancel(req, env);
   if (path === "/api/draw/admin/entries.csv" && m === "GET") return entriesCsv(req, env);
   if (path === "/api/draw/admin/tracker" && m === "GET") return tracker(req, env);
+  const slot = await handleSlot(req, env, ctx, path, m);
+  if (slot) return slot;
   if (path === "/api/draw/admin/registrants.csv" && m === "GET") return registrantsCsv(req, env);
   if (path === "/api/draw/admin/opinions.csv" && m === "GET") return opinionsCsv(req, env);
   const pub = path.match(/^\/api\/draw\/([a-z0-9-]{4,16})\/(entries|proof)$/);
