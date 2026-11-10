@@ -7,6 +7,10 @@ import { km, fmtKm } from '../lib/format'
 import { Icon } from './bits'
 import { availableIn, CITY_COUNTRY } from '../lib/cards'
 
+// Hidden for launch, kept for later: flip back to true to show them again.
+const SHOW_SIM_BUTTONS = false // 10k / 1M simulated users
+const SHOW_NAV_BUTTON = false // 🧭 navigation search
+
 export default function MapControls() {
   const pos = useStore((s) => s.pos)
   const city = useStore((s) => s.city)
@@ -84,7 +88,8 @@ export default function MapControls() {
   return (
     <div className={`pointer-events-auto absolute right-3 ${stripUp ? (tallStrip ? 'bottom-[calc(var(--dock-h)+188px)]' : 'bottom-[calc(var(--dock-h)+148px)]') : 'bottom-[calc(var(--dock-h)+64px)]'} lg:bottom-[calc(var(--dock-h)+12px)] z-20 flex-col items-end gap-2 md:right-4 ${worldView || navOn ? 'hidden' : `md:flex ${panelOpen ? 'hidden' : 'flex'}`}`}>
       {armed && <div className="glass rounded-xl px-3 py-2 text-[12px] text-ember">Tap anywhere to place yourself</div>}
-      <div className="flex items-center gap-2">
+      {SHOW_SIM_BUTTONS && (
+        <div className="flex items-center gap-2">
         {([10_000, 1_000_000] as SimSize[]).map((n) => (
           <button
             key={n}
@@ -97,16 +102,19 @@ export default function MapControls() {
             {fmtUsers(n)}
           </button>
         ))}
-      </div>
-      {sim && (
+        </div>
+      )}
+      {SHOW_SIM_BUTTONS && sim && (
         <div className="-mt-1 rounded-lg bg-black/50 px-2 py-0.5 font-mono text-[9.5px] tracking-[0.08em] text-[#14f195] uppercase">
           sim · {city.name} {fmtUsers(simCount(city.id, sim))} / {fmtUsers(sim)}
         </div>
       )}
       <div className="flex items-center gap-2">
+{SHOW_NAV_BUTTON && (
         <button onClick={() => useStore.getState().setNavSearch(true)} className="btn-black grid h-11 w-11 place-items-center !rounded-2xl !p-0 text-[18px]" aria-label="Navigate: where to?" title="Where to?">
           🧭
         </button>
+        )}
         <button onClick={camera} className="btn-black grid h-11 w-11 place-items-center !rounded-2xl !p-0" aria-label="Capture a memory here" title="Memory · camera">
           <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M4 8h3l2-2.5h6L17 8h3v11H4z" />
