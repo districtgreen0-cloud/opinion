@@ -82,7 +82,7 @@ export default function MapControls() {
   }
 
   return (
-    <div className={`pointer-events-auto absolute right-3 ${stripUp ? (tallStrip ? 'bottom-[calc(var(--dock-h)+136px)] lg:bottom-[calc(var(--dock-h)+12px)]' : 'bottom-[calc(var(--dock-h)+96px)] lg:bottom-[calc(var(--dock-h)+12px)]') : 'bottom-[calc(var(--dock-h)+12px)]'} z-20 flex-col items-end gap-2 md:right-4 ${worldView || navOn ? 'hidden' : `md:flex ${panelOpen ? 'hidden' : 'flex'}`}`}>
+    <div className={`pointer-events-auto absolute right-3 ${stripUp ? (tallStrip ? 'bottom-[calc(var(--dock-h)+188px)]' : 'bottom-[calc(var(--dock-h)+148px)]') : 'bottom-[calc(var(--dock-h)+64px)]'} lg:bottom-[calc(var(--dock-h)+12px)] z-20 flex-col items-end gap-2 md:right-4 ${worldView || navOn ? 'hidden' : `md:flex ${panelOpen ? 'hidden' : 'flex'}`}`}>
       {armed && <div className="glass rounded-xl px-3 py-2 text-[12px] text-ember">Tap anywhere to place yourself</div>}
       <div className="flex items-center gap-2">
         {([10_000, 1_000_000] as SimSize[]).map((n) => (

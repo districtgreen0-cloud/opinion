@@ -455,3 +455,8 @@ body,
 .sp-rings .r4 { animation: sp-spin 300s linear infinite reverse; }
 @keyframes sp-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .sp-rings .ring { animation: none; } }
+
+/* phones zoom the whole page into any text field under 16px: keep fields at 16px on touch screens */
+@media (pointer: coarse) {
+  input, textarea, select { font-size: 16px !important; }
+}
