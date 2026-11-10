@@ -155,8 +155,7 @@ export default function DrawSheet() {
         ) : (
           <>
             <p className="mt-2 text-[13px] leading-relaxed text-white/75">
-              Prize: <b className="text-white">{draw.prize}</b>. One entry per person. You must be eligible to travel to the UK. The winner is picked by a public draw anyone can recompute (commitment{' '}
-              {draw.commitHash ? <span className="num text-white/60">{short(draw.commitHash)}</span> : 'published before entries close'}).
+              Prize: <b className="text-white">{draw.prize}</b>. One entry per person. You must be eligible to travel to the UK.
             </p>
             <div className="mt-4 space-y-2">
               <Step n={1} done={signed} title="Sign up">
@@ -215,7 +214,7 @@ export default function DrawSheet() {
               </Step>
             </div>
             <div className="num mt-3 text-[11px] text-fog">
-              {draw.entriesCount} {draw.entriesCount === 1 ? 'entry' : 'entries'} so far · draw {new Date(draw.endsAt).toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} London time
+              {draw.entriesCount} {draw.entriesCount === 1 ? 'entry' : 'entries'} so far · draw {new Date(draw.endsAt).toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\s?pm$/i, ' PM').replace(/\s?am$/i, ' AM')} (GMT) London time
             </div>
             <p className="mt-2 text-[10px] leading-snug text-white/35">You must be eligible to travel to the UK. The follow is checked by hand before the prize ships. Delivery is arranged by email with the winner. Travel and accommodation are not included. No purchase needed.</p>
           </>

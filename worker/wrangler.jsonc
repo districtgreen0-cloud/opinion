@@ -27,7 +27,7 @@
   ],
 
   // Earn aggregation + retention cleanup, hourly
-  "triggers": { "crons": ["17 * * * *", "11 11 11 11 *"] },
+  "triggers": { "crons": ["17 * * * *", "11 23 11 11 *"] },
   // Earn secrets: npx wrangler secret put EARN_SALT · npx wrangler secret put ADMIN_TOKEN
 
   // Memories (camera photos per hex) live in the R2 bucket "opinion" (created in the dashboard 2026-10-16)
