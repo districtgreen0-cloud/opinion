@@ -2,6 +2,7 @@ import { handleFeeds } from "./feeds";
 import { handleSports } from "./sports";
 import { earnCron, handleEarn, isAdmin } from "./earn";
 import { handleMemories } from "./memories";
+import { handleFriends } from "./friends";
 import { autoReveal, handleDraw, MIN_OPINION, recordEntry } from "./draw";
 import { getResolution, isValidCell, latLngToCell } from "h3-js";
 import { HexRoom } from "./hex-room";
@@ -422,6 +423,11 @@ async function route(req: Request, env: Env, ctx: ExecutionContext): Promise<Res
 
   if (path.startsWith("/api/earn/")) {
     const res = await handleEarn(req, env, path, m);
+    if (res) return res;
+  }
+
+  {
+    const res = await handleFriends(req, env, path, m);
     if (res) return res;
   }
 

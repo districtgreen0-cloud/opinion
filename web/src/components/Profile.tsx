@@ -165,6 +165,15 @@ export default function ProfileCard() {
                 ✓ Friends
               </button>
             </>
+          ) : link?.status === 'incoming' ? (
+            <>
+              <button onClick={() => s.addFriend(p.handle, p.avatar)} className="flex-1 rounded-xl bg-gradient-to-r from-[#9945ff] to-[#14f195] py-1.5 text-[12px] font-semibold text-black transition-[filter] hover:brightness-110">
+                Accept request
+              </button>
+              <button onClick={() => s.removeFriend(p.handle)} className="btn-black !rounded-xl !px-2.5 !py-1.5 text-[11px] text-white/70" aria-label={`Decline ${p.handle}'s friend request`}>
+                Decline
+              </button>
+            </>
           ) : link?.status === 'pending' ? (
             <button onClick={() => s.removeFriend(p.handle)} className="btn-black flex-1 !rounded-xl !py-1.5 text-[12px] text-white/70">
               Requested · cancel

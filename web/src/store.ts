@@ -10,13 +10,15 @@ import type { Account } from './lib/auth'
 import type { Consent } from './lib/earn'
 import type { LngLat, NavMode, Route } from './lib/route'
 import type { SimSize } from './lib/sim'
+import { LIVE } from './lib/api'
+import { acceptFriend, fetchFriends, removeFriendLink, requestFriend, type ServerLink } from './lib/friends'
 
 export type HomeFilter = 'all' | 'event' | 'sport' | 'topic' | 'note' | 'job'
 export type Tab = 'explore' | 'events' | 'crews' | 'market' | 'chat' | 'rewards' | 'account'
 export type Lighting = 'midnight' | 'neon' | 'dusk'
 export type ThemePref = 'dark' | 'light' | 'system'
 export type Toast = { id: string; text: string; tone?: 'ember' | 'violet' | 'mint' }
-export type FriendLink = { avatar: string; status: 'pending' | 'friends'; since: number }
+export type FriendLink = { avatar: string; status: 'pending' | 'friends' | 'incoming'; since: number } // incoming = they asked you
 export type ProfileRef = { handle: string; avatar: string; x?: number; y?: number }
 export type Nav = { dest: LngLat; name: string; mode: NavMode; route: Route | null; status: 'routing' | 'active' | 'error'; follow: boolean; simulate: boolean; key: number }
 export type Pos = { lat: number; lng: number; source: 'gps' | 'teleport' }
@@ -81,6 +83,8 @@ type State = {
   friendLinks: Record<string, FriendLink>
   addFriend: (handle: string, avatar: string) => void
   removeFriend: (handle: string) => void
+  syncFriends: (links: ServerLink[], announce?: boolean) => void
+  loadFriends: () => Promise<void>
   /** World view: the map pans to this city (city strip) */
   peek: { center: [number, number]; key: number } | null
   peekCity: (center: [number, number]) => void
@@ -286,8 +290,43 @@ export const useStore = create<State>((set, get) => ({
   profile: null,
   openProfile: (profile) => set({ profile }),
   friendLinks: load<Record<string, FriendLink>>('friends', {}),
-  addFriend: (handle, avatar) => {
-    if (handle === get().me.handle || get().friendLinks[handle]) return
+  // live + signed in: the server owns the list (requests reach the other person). Demo: local, auto-accepted.
+  syncFriends: (links, announce = true) => {
+    const before = get().friendLinks
+    const friendLinks: Record<string, FriendLink> = {}
+    for (const l of links) friendLinks[l.handle] = { avatar: l.avatar, status: l.status, since: l.since }
+    if (announce) {
+      for (const l of links) {
+        const was = before[l.handle]?.status
+        if (l.status === 'incoming' && was !== 'incoming') get().toast(`${l.handle} sent you a friend request`, 'violet')
+        if (l.status === 'friends' && was === 'pending') get().award(15, `${l.handle} accepted · new friend`)
+      }
+    }
+    save('friends', friendLinks)
+    set({ friendLinks })
+  },
+  loadFriends: async () => {
+    if (!LIVE || !get().account) return
+    const r = await fetchFriends()
+    if (r.ok) get().syncFriends(r.links)
+  },
+  addFriend: async (handle, avatar) => {
+    if (handle === get().me.handle) return
+    const cur = get().friendLinks[handle]
+    if (cur && cur.status !== 'incoming') return
+    if (LIVE) {
+      if (!get().account) {
+        get().toast('Sign in to add friends', 'violet')
+        return get().setAuthOpen(true)
+      }
+      const r = cur?.status === 'incoming' ? await acceptFriend(handle) : await requestFriend(handle)
+      if (!r.ok) return get().toast(r.error === 'no_account' ? `${handle} has no account yet, so they can't get requests` : r.error === 'sign_in_required' ? 'Sign in to add friends' : 'Could not send the request. Try again.', 'ember')
+      const now = r.links.find((l) => l.handle.toLowerCase() === handle.toLowerCase())
+      get().syncFriends(r.links, false)
+      if (now?.status === 'friends') get().award(15, `You and ${handle} are friends`)
+      else get().toast(`Friend request sent to ${handle}`, 'violet')
+      return
+    }
     const put = (l: FriendLink) => {
       const friendLinks = { ...get().friendLinks, [handle]: l }
       save('friends', friendLinks)
@@ -295,14 +334,19 @@ export const useStore = create<State>((set, get) => ({
     }
     put({ avatar, status: 'pending', since: Date.now() })
     get().toast(`Friend request sent to ${handle}`, 'violet')
-    // demo: people accept after a moment (live mode: the request waits in their inbox)
+    // demo: people accept after a moment
     setTimeout(() => {
       if (get().friendLinks[handle]?.status !== 'pending') return
       put({ avatar, status: 'friends', since: Date.now() })
       get().award(15, `${handle} accepted · new friend`)
     }, 1800 + Math.random() * 2200)
   },
-  removeFriend: (handle) => {
+  removeFriend: async (handle) => {
+    if (LIVE && get().account) {
+      const r = await removeFriendLink(handle)
+      if (!r.ok) return get().toast('Could not update. Try again.', 'ember')
+      return get().syncFriends(r.links, false)
+    }
     const friendLinks = { ...get().friendLinks }
     delete friendLinks[handle]
     save('friends', friendLinks)
@@ -370,6 +414,10 @@ export const useStore = create<State>((set, get) => ({
     if (account) get().setMe({ handle: account.handle, avatar: account.avatar })
     if (account && !account.opinionAt) get().toast('Tap any hex and leave your OPINION', 'violet')
     get().loadDraw() // lottery state depends on the session
+    if (LIVE) {
+      if (account) get().loadFriends()
+      else if (Object.keys(get().friendLinks).length) get().syncFriends([], false) // signed out: the list belongs to the account
+    }
   },
 
   setTab: (tab) => (tab === 'rewards' ? get().toast('Coming soon', 'violet') : set({ tab })), // Rewards is locked for now

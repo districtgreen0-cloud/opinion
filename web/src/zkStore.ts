@@ -173,10 +173,10 @@ export const useZk = create<State>((set, get) => {
   }
 
   /** a member we hold keys for writes a real encrypted message from *their* side */
-  const sendAs = async (roomId: string, author: Identity, text: string) => {
+  const sendAs = async (roomId: string, author: Identity | null | undefined, text: string) => {
     const s = get()
     const room = s.rooms.find((r) => r.id === roomId)
-    if (!room) return
+    if (!room || !author) return // identity not ready yet (first open) or a peer we hold no key for
     const key = await keyFor(s, room, room.epoch, author)
     if (!key) return
     const ts = Date.now()
@@ -223,9 +223,9 @@ export const useZk = create<State>((set, get) => {
       set({ me, contacts, rooms: load('rooms', []), envelopes: load('env', {}), ready: true })
       if (firstRun) {
         const dm = await get().openDm(contacts[0].fp)
-        await sendAs(dm, signer(get(), contacts[0].fp)!, 'hey 👋 this chat is end-to-end encrypted')
+        await sendAs(dm, signer(get(), contacts[0].fp), 'hey 👋 this chat is end-to-end encrypted')
         const g = await get().createGroup('Breakpoint crew 🔐', contacts.slice(1, 4).map((c) => c.fp))
-        await sendAs(g, signer(get(), contacts[1].fp)!, 'welcome to the private room. only members hold the key')
+        await sendAs(g, signer(get(), contacts[1].fp), 'welcome to the private room. only members hold the key')
       } else {
         for (const list of Object.values(get().envelopes)) for (const env of list) decrypt(env)
       }

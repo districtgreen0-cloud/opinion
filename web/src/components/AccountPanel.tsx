@@ -136,12 +136,41 @@ function SignedIn() {
   )
 }
 
-/** People you've added (tap → their profile card). */
+/** Friend requests waiting for you, then the people you've added (tap → their profile card). */
 function Friends() {
   const links = useStore((s) => s.friendLinks)
-  const list = Object.entries(links).sort((a, b) => b[1].since - a[1].since)
+  const all = Object.entries(links).sort((a, b) => b[1].since - a[1].since)
+  const incoming = all.filter(([, l]) => l.status === 'incoming')
+  const list = all.filter(([, l]) => l.status !== 'incoming')
+  const s = useStore.getState()
+  useEffect(() => {
+    useStore.getState().loadFriends()
+  }, [])
   return (
     <>
+      {incoming.length > 0 && (
+        <>
+          <h3 className="mt-6 mb-2 text-[11px] tracking-[0.2em] text-[#14f195] uppercase">
+            Friend requests <span className="num">{incoming.length}</span>
+          </h3>
+          <ul className="space-y-1.5" aria-label="Friend requests">
+            {incoming.map(([h, l]) => (
+              <li key={h} className="flex items-center gap-2 rounded-2xl border border-[#14f195]/25 bg-[#14f195]/[.05] p-2">
+                <Person handle={h} avatar={l.avatar} className="flex min-w-0 flex-1 items-center gap-2 text-left text-[13px] text-white">
+                  <Avatar id={l.avatar} handle={h} size={26} />
+                  <span className="truncate">{h}</span>
+                </Person>
+                <button onClick={() => s.addFriend(h, l.avatar)} className="rounded-xl bg-gradient-to-r from-[#9945ff] to-[#14f195] px-3 py-1.5 text-[12px] font-semibold text-black">
+                  Accept
+                </button>
+                <button onClick={() => s.removeFriend(h)} className="btn-black !rounded-xl !px-2.5 !py-1.5 text-[11.5px] text-white/70" aria-label={`Decline ${h}`}>
+                  Decline
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       <h3 className="mt-6 mb-2 text-[11px] tracking-[0.2em] text-fog uppercase">
         Friends <span className="num text-white/60">{list.filter(([, l]) => l.status === 'friends').length}</span>
       </h3>

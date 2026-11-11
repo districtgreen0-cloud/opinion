@@ -25,5 +25,13 @@ export function useAuthBoot() {
       else if (s.account) s.setAccount(null) // cookie gone → drop stale local copy
       s.loadDraw() // hex lottery state (depends on the session)
     })
+    // friend requests arrive while you're in the app: check every 30 s and whenever the tab comes back
+    const check = () => document.visibilityState === 'visible' && useStore.getState().loadFriends()
+    const t = setInterval(check, 30_000)
+    document.addEventListener('visibilitychange', check)
+    return () => {
+      clearInterval(t)
+      document.removeEventListener('visibilitychange', check)
+    }
   }, [])
 }

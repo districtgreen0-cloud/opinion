@@ -23,6 +23,7 @@ export default function TopBar() {
   const lighting = useStore((s) => s.lighting)
   const setLighting = useStore((s) => s.setLighting)
   const me = useStore((s) => s.me)
+  const requests = useStore((s) => Object.values(s.friendLinks).filter((l) => l.status === 'incoming').length)
   const setTab = useStore((s) => s.setTab)
   const [cityOpen, setCityOpen] = useState(false)
 
@@ -94,8 +95,9 @@ export default function TopBar() {
         </div>
         <ThemeCube />
         <AuthButton />
-        <button onClick={() => setTab('account')} className="glass-btn grid h-11 w-11 place-items-center !rounded-2xl !p-0" aria-label="Account">
+        <button onClick={() => setTab('account')} className="glass-btn relative grid h-11 w-11 place-items-center !rounded-2xl !p-0" aria-label={requests ? `Account · ${requests} friend request${requests > 1 ? 's' : ''}` : 'Account'}>
           <Avatar id={me.avatar} handle={me.handle} size={28} />
+          {requests > 0 && <span className="num absolute -top-1 -right-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#14f195] px-1 text-[10px] font-bold text-black shadow-[0_0_10px_#14f195]">{requests}</span>}
         </button>
       </div>
     </div>

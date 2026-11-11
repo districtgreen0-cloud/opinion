@@ -140,7 +140,8 @@ export default function Map3D() {
     })
     mapRef.current = map
     mapHandle.current = map
-    ;(window as unknown as { __map: maplibregl.Map }).__map = map // debug handle
+    ;(window as unknown as { __map: maplibregl.Map; __store: typeof useStore }).__map = map // debug handles
+    ;(window as unknown as { __store: typeof useStore }).__store = useStore
     const overlay = new MapboxOverlay({ interleaved: true, layers: [] })
     overlayRef.current = overlay
     const beacons = new BeaconLayer()
