@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { useZk, type Contact, type Room } from '../zkStore'
 import { safetyNumber, shortFp } from '../lib/zk'
 import { ago } from '../lib/format'
+import { LIVE } from '../lib/api'
 import { Avatar, Icon, Panel } from './bits'
 
 type View = { k: 'home' } | { k: 'room'; id: string } | { k: 'add' } | { k: 'new' } | { k: 'info'; id: string } | { k: 'contact'; fp: string }
@@ -12,12 +13,46 @@ export default function ChatPanel() {
   const me = useStore((s) => s.me)
   const z = useZk()
   const s = useStore.getState
+  const account = useStore((st) => st.account)
   const [view, setView] = useState<View>({ k: 'home' })
+  const needSignIn = LIVE && !account
 
   useEffect(() => {
-    z.init(me.handle, me.avatar)
+    if (needSignIn) return
+    z.init(me.handle, me.avatar, account?.id).then(() => useZk.getState().sync())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [account?.id])
+
+  // which room is on screen (drives unread counts)
+  useEffect(() => {
+    z.setActive(view.k === 'room' ? view.id : null)
+    return () => useZk.getState().setActive(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.k === 'room' ? view.id : null])
+
+  // profile card → Message: open that person's DM as soon as chat is ready
+  useEffect(() => {
+    if (!z.ready || !z.pending) return
+    const handle = z.pending
+    z.requestDm(null)
+    ;(async () => {
+      const c = await z.addByHandle(handle)
+      if (!c) return s().toast(`${handle} hasn't opened chat yet, so there's no key to message them with`, 'ember')
+      const id = await z.openDm(c.fp)
+      if (useZk.getState().rooms.some((r) => r.id === id)) setView({ k: 'room', id })
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [z.ready, z.pending])
+
+  if (needSignIn)
+    return (
+      <Panel kicker="End-to-end encrypted" title="ZK Chat" onClose={() => s().setTab('explore')}>
+        <p className="py-6 text-center text-[13px] text-white/70">Sign in to chat. Your messages are encrypted on your device, and only the people you chat with can read them.</p>
+        <button className="btn-ghost w-full text-[13px]" onClick={() => s().setAuthOpen(true)}>
+          Sign in / Sign up
+        </button>
+      </Panel>
+    )
 
   if (!z.ready || !z.me)
     return (
@@ -30,7 +65,17 @@ export default function ChatPanel() {
   if (view.k === 'info') return <RoomInfo id={view.id} back={() => setView({ k: 'room', id: view.id })} />
   if (view.k === 'add') return <AddPerson back={() => setView({ k: 'home' })} openContact={(fp) => setView({ k: 'contact', fp })} />
   if (view.k === 'new') return <NewRoom back={() => setView({ k: 'home' })} created={(id) => setView({ k: 'room', id })} />
-  if (view.k === 'contact') return <ContactView fp={view.fp} back={() => setView({ k: 'add' })} chat={async () => setView({ k: 'room', id: await z.openDm(view.fp) })} />
+  if (view.k === 'contact')
+    return (
+      <ContactView
+        fp={view.fp}
+        back={() => setView({ k: 'add' })}
+        chat={async () => {
+          const id = await z.openDm(view.fp)
+          if (useZk.getState().rooms.some((r) => r.id === id)) setView({ k: 'room', id })
+        }}
+      />
+    )
   return <Home go={setView} />
 }
 
@@ -81,7 +126,8 @@ function Home({ go }: { go: (v: View) => void }) {
         </button>
       </div>
 
-      <ul className="space-y-1">
+      {rooms.length === 0 && <p className="py-6 text-center text-[13px] text-fog">No chats yet. Add a person to start one.</p>}
+      <ul className="space-y-1" aria-label="Chats">
         {rooms.map((r) => {
           const l = last(r)
           const other = r.kind === 'dm' ? z.contacts.find((c) => r.members.includes(c.fp)) : undefined
@@ -101,7 +147,10 @@ function Home({ go }: { go: (v: View) => void }) {
                       {r.name}
                       {other?.verified && <span className="ml-1 text-[11px] text-[#14f195]">✓</span>}
                     </span>
-                    <span className="shrink-0 text-[10.5px] text-fog">{ago(l.at)}</span>
+                    <span className="flex shrink-0 items-center gap-1.5 text-[10.5px] text-fog">
+                      {z.unread[r.id] ? <span className="num grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#14f195] px-1 text-[10px] font-bold text-black">{z.unread[r.id]}</span> : null}
+                      {ago(l.at)}
+                    </span>
                   </div>
                   <div className="truncate text-[12px] text-white/50">
                     {r.kind === 'group' && <span className="font-mono text-[10px] text-white/35">{r.members.length} · KEY v{r.epoch} · </span>}
@@ -282,8 +331,60 @@ function AddPerson({ back, openContact }: { back: () => void; openContact: (fp: 
   const z = useZk()
   const [code, setCode] = useState('')
   const [err, setErr] = useState<string | null>(null)
+  const [handle, setHandle] = useState('')
+  const [hErr, setHErr] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const links = useStore((st) => st.friendLinks)
+  const friends = Object.entries(links).filter(([h, l]) => l.status === 'friends' && !z.contacts.some((c) => c.handle.toLowerCase() === h.toLowerCase()))
+  const find = async (h: string) => {
+    setHErr(null)
+    setBusy(true)
+    const c = await z.addByHandle(h)
+    setBusy(false)
+    if (!c) return setHErr(`No chat key found for ${h.startsWith('@') ? h : '@' + h}. They need to sign in and open the app once.`)
+    setHandle('')
+    openContact(c.fp)
+  }
   return (
     <Panel kicker="Add to ZK Chat" title="Add person" onClose={back}>
+      {LIVE && (
+        <>
+          <form
+            className="mb-5 space-y-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              find(handle)
+            }}
+          >
+            <label className="text-[11px] tracking-[0.16em] text-fog uppercase" htmlFor="zk-handle">
+              Find by handle
+            </label>
+            <div className="flex gap-2">
+              <input id="zk-handle" className="input" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="@theirhandle" autoCapitalize="none" autoCorrect="off" aria-label="Their handle" />
+              <button className="btn-ghost shrink-0 text-[13px]" disabled={busy || handle.trim().length < 2}>
+                {busy ? '…' : 'Find'}
+              </button>
+            </div>
+            {hErr && <p className="text-[12px] text-ember">{hErr}</p>}
+          </form>
+          {friends.length > 0 && (
+            <>
+              <h3 className="mb-2 text-[11px] tracking-[0.2em] text-fog uppercase">Your friends</h3>
+              <ul className="mb-5 space-y-1" aria-label="Friends to add">
+                {friends.map(([h, l]) => (
+                  <li key={h}>
+                    <button onClick={() => find(h)} className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-white/[.04]">
+                      <Avatar id={l.avatar} handle={h} size={32} />
+                      <span className="flex-1 text-[13.5px] text-white">{h}</span>
+                      <span className="text-[11.5px] text-[#14f195]">Add to chat</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </>
+      )}
       <form
         className="space-y-2"
         onSubmit={async (e) => {
@@ -387,7 +488,7 @@ function NewRoom({ back, created }: { back: () => void; created: (id: string) =>
         disabled={!sel.length}
         onClick={async () => {
           const id = await z.createGroup(name, sel)
-          created(id)
+          if (id) created(id)
         }}
       >
         Create encrypted room · {sel.length + 1} members

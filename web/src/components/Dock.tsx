@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { useStore, type Tab } from '../store'
 import { Icon, reduced } from './bits'
+import { useZk } from '../zkStore'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'explore', label: 'Explore' },
@@ -15,6 +16,7 @@ const TABS: { id: Tab; label: string }[] = [
 export default function Dock() {
   const tab = useStore((s) => s.tab)
   const setTab = useStore((s) => s.setTab)
+  const unread = useZk((z) => Object.values(z.unread).reduce((a, n) => a + n, 0))
   const lens = useRef<HTMLSpanElement>(null)
   const items = useRef<Record<string, HTMLButtonElement | null>>({})
   const first = useRef(true)
@@ -70,6 +72,7 @@ export default function Dock() {
             >
               <Icon name={t.id} className="h-[17px] w-[17px] shrink-0 sm:h-[19px] sm:w-[19px]" />
               <span className="max-w-full truncate px-0.5">{t.label}</span>
+              {t.id === 'chat' && unread > 0 && <span className="num absolute top-0.5 right-1 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-[#14f195] px-1 text-[9px] font-bold text-black shadow-[0_0_8px_#14f195]" aria-label={`${unread} unread`}>{unread}</span>}
               {on && <span className="absolute top-1 h-[3px] w-[3px] rounded-full bg-ember shadow-[0_0_8px_#ff5a1f]" />}
             </button>
           )

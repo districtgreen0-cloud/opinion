@@ -118,5 +118,6 @@ export async function openText(key: CryptoKey, w: Wrapped, aad = ''): Promise<st
   return dec.decode(await openBytes(key, w, aad))
 }
 
-export const msgAad = (room: string, from: string, epoch: number, ts: number) => `${room}|${from}|${epoch}|${ts}`
+/** Binds a ciphertext to its context. `tag` is the envelope id (the relay keeps it; it re-stamps the time). */
+export const msgAad = (room: string, from: string, epoch: number, tag: string | number) => `${room}|${from}|${epoch}|${tag}`
 export const shortFp = (fp: string) => fp.slice(0, 4) + ' ' + fp.slice(4, 8) + ' ' + fp.slice(8, 12)

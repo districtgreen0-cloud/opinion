@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, type ReactNode } from 'react'
 import gsap from 'gsap'
 import { useStore } from '../store'
+import { useZk } from '../zkStore'
 import { cityData } from '../data/mock'
 import { cellCenter } from '../lib/h3'
 import { ago } from '../lib/format'
@@ -154,6 +155,7 @@ export default function ProfileCard() {
             <>
               <button
                 onClick={() => {
+                  useZk.getState().requestDm(p.handle)
                   s.setTab('chat')
                   close()
                 }}

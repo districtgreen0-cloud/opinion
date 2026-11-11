@@ -23,6 +23,7 @@
  * ============================================================================================
  */
 import { DurableObject } from "cloudflare:workers";
+import { getAccount } from "./auth";
 import { clean, err, json, readJson, str } from "./http";
 import type { ZkEnvelope, ZkKey, ZkRoom as ZkRoomRecord, ZkWrapped } from "./types";
 
@@ -240,13 +241,15 @@ async function postKey(req: Request, env: Env): Promise<Response> {
   if (typeof fp !== "string" || !FP_RE.test(fp)) return err(req, "invalid", 400, { field: "fp" });
   if (!isObj(pub) || pub.kty !== "EC" || pub.crv !== "P-256" || !isB64u(pub.x, COORD_LEN) || !isB64u(pub.y, COORD_LEN)) return err(req, "invalid", 400, { field: "pub" });
   if ((await fingerprint(pub.x, pub.y)) !== fp) return err(req, "fp_mismatch", 400, { field: "fp" });
-  const handle = clean(str(body.handle) ?? "").slice(0, 32) || "anon";
-  const avatar = (str(body.avatar) ?? "").slice(0, 512);
+  // signed in: the key is bound to the account, and the handle / avatar come from it (nobody can claim someone else's handle)
+  const account = await getAccount(req, env);
+  const handle = account?.handle ?? (clean(str(body.handle) ?? "").slice(0, 32) || "anon");
+  const avatar = account?.avatar ?? (str(body.avatar) ?? "").slice(0, 512);
   const canon = { kty: "EC", crv: "P-256", x: pub.x, y: pub.y };
   const now = Date.now();
   await env.DB.prepare(
-    "INSERT INTO zk_keys (fp, handle, avatar, pub_json, created_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(fp) DO UPDATE SET handle = excluded.handle, avatar = excluded.avatar",
-  ).bind(fp, handle, avatar, JSON.stringify(canon), now).run();
+    "INSERT INTO zk_keys (fp, handle, avatar, pub_json, created_at, account_id, seen_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?5) ON CONFLICT(fp) DO UPDATE SET handle = excluded.handle, avatar = excluded.avatar, account_id = COALESCE(excluded.account_id, zk_keys.account_id), seen_at = excluded.seen_at",
+  ).bind(fp, handle, avatar, JSON.stringify(canon), now, account?.id ?? null).run();
   const row = await env.DB.prepare("SELECT * FROM zk_keys WHERE fp = ?").bind(fp).first<KeyRow>();
   return json(req, row ? toKey(row) : null, 201);
 }
@@ -259,7 +262,10 @@ async function getKeys(req: Request, env: Env, url: URL, fp: string | null): Pro
   }
   const handle = clean(url.searchParams.get("handle") ?? "").slice(0, 32);
   if (!handle) return err(req, "invalid", 400, { field: "handle" });
-  const row = await env.DB.prepare("SELECT * FROM zk_keys WHERE lower(handle) = lower(?) ORDER BY created_at ASC LIMIT 1").bind(handle).first<KeyRow>();
+  // only keys bound to the account that owns this handle; the device they used most recently
+  const row = await env.DB.prepare(
+    "SELECT k.fp, a.handle, a.avatar, k.pub_json, k.created_at FROM zk_keys k JOIN accounts a ON a.id = k.account_id WHERE lower(a.handle) = lower(?) ORDER BY k.seen_at DESC LIMIT 1",
+  ).bind(handle.startsWith("@") ? handle : "@" + handle).first<KeyRow>();
   return row ? json(req, toKey(row)) : err(req, "not_found", 404);
 }
 

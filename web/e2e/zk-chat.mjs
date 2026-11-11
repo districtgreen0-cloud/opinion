@@ -7,7 +7,7 @@ const p = await (await b.newContext({ viewport: { width: 1440, height: 900 }, de
 p.on('pageerror', (e) => errs.push(e.message))
 const panel = () => p.locator('section').first()
 const btn = (n) => panel().getByRole('button', { name: n }).first()
-await p.goto('http://localhost:4701'); await p.waitForFunction(() => window.__map?.loaded(), null, { timeout: 120000 }); await p.waitForTimeout(5000)
+await p.goto(process.argv[2] ?? 'http://localhost:4702'); await p.waitForFunction(() => window.__map?.loaded(), null, { timeout: 120000 }); await p.waitForTimeout(5000) // demo build
 
 await p.getByRole('button', { name: 'ZK Chat', exact: true }).click()
 await p.waitForSelector('text=Share invite', { timeout: 15000 }); await p.waitForTimeout(1200)

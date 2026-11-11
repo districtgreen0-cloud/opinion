@@ -6,6 +6,7 @@ import { ScatterplotLayer, IconLayer, TextLayer, PolygonLayer } from '@deck.gl/l
 import { useStore, type HomeFilter } from '../store'
 import { buildStyle, LIGHTING, type MapLook } from '../lib/mapStyle'
 import { addWorldLayers } from './worldLayer'
+import { useZk } from '../zkStore'
 import { cityData, CITIES, COLOSSEUM_EVENT, COLOSSEUM_URL } from '../data/mock'
 import { toCell, cellCenter } from '../lib/h3'
 import { avatarSrc, avatarColor } from '../lib/avatars'
@@ -142,6 +143,7 @@ export default function Map3D() {
     mapHandle.current = map
     ;(window as unknown as { __map: maplibregl.Map; __store: typeof useStore }).__map = map // debug handles
     ;(window as unknown as { __store: typeof useStore }).__store = useStore
+    ;(window as unknown as { __zk: typeof useZk }).__zk = useZk
     const overlay = new MapboxOverlay({ interleaved: true, layers: [] })
     overlayRef.current = overlay
     const beacons = new BeaconLayer()
