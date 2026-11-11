@@ -6,7 +6,7 @@ import type { Vibe } from '../lib/types'
 import { Avatar, Panel } from './bits'
 import { H3_AREA_LABEL } from '../lib/h3'
 import TimelineImport from './TimelineImport'
-import { logout, AUTH_DEMO } from '../lib/auth'
+import { logout, updateProfile, AUTH_DEMO } from '../lib/auth'
 import { disconnectWallet } from '../lib/wallet'
 import { Person } from './Profile'
 
@@ -21,21 +21,21 @@ export default function AccountPanel() {
   const wallet = useStore((s) => s.wallet)
   const setMe = useStore((s) => s.setMe)
   const s = useStore.getState
+  // signed in: the avatar is saved to the account, so other people see it too
+  const pickAvatar = async (avatar: string) => {
+    setMe({ avatar })
+    const account = s().account
+    if (AUTH_DEMO || !account) return
+    const r = await updateProfile({ avatar })
+    if (r.ok) s().setAccount({ ...account, avatar })
+    else s().toast('Could not save the avatar. Try again.', 'ember')
+  }
 
   return (
     <Panel kicker="Account" title={me.handle} onClose={() => s().setTab('explore')}>
       <div className="flex items-center gap-4">
         <Avatar id={me.avatar} handle={me.handle} size={64} ring="#ff5a1f" />
-        <div className="min-w-0 flex-1">
-          <label className="text-[11px] tracking-[0.16em] text-fog uppercase" htmlFor="handle">Handle</label>
-          <input
-            id="handle"
-            className="input mt-1"
-            value={me.handle}
-            maxLength={20}
-            onChange={(e) => setMe({ handle: '@' + e.target.value.replace(/[^a-z0-9._]/gi, '').toLowerCase() })}
-          />
-        </div>
+        <HandleField />
       </div>
 
       <SignedIn />
@@ -44,7 +44,7 @@ export default function AccountPanel() {
       <h3 className="mt-6 mb-2 text-[11px] tracking-[0.2em] text-fog uppercase">Avatar</h3>
       <div className="grid grid-cols-8 gap-2">
         {AVATARS.map((a) => (
-          <button key={a} onClick={() => setMe({ avatar: a })} aria-label={`Avatar ${a}`} className={`rounded-full transition ${me.avatar === a ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}>
+          <button key={a} onClick={() => pickAvatar(a)} aria-label={`Avatar ${a}`} className={`rounded-full transition ${me.avatar === a ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}>
             <Avatar id={a} handle={me.handle} size={36} ring={me.avatar === a ? '#ff5a1f' : undefined} />
           </button>
         ))}
@@ -89,6 +89,78 @@ export default function AccountPanel() {
         OPINION never stores your raw GPS trail. Only the hex you post from is kept ({H3_AREA_LABEL}).
       </p>
     </Panel>
+  )
+}
+
+const HANDLE_OK = /^[a-z0-9._]{2,20}$/
+
+/** Username: type, then Save. Signed in → saved to the account (and checked for being free). */
+function HandleField() {
+  const me = useStore((s) => s.me)
+  const account = useStore((s) => s.account)
+  const [draft, setDraft] = useState(me.handle.replace(/^@/, ''))
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  useEffect(() => setDraft(me.handle.replace(/^@/, '')), [me.handle])
+  const next = '@' + draft
+  const changed = next !== me.handle
+  const valid = HANDLE_OK.test(draft)
+  const save = async () => {
+    if (!changed || !valid || busy) return
+    setMsg(null)
+    const st = useStore.getState()
+    if (!AUTH_DEMO && account) {
+      setBusy(true)
+      const r = await updateProfile({ handle: next })
+      setBusy(false)
+      if (!r.ok) return setMsg({ ok: false, text: r.error === 'handle_taken' ? 'That username is taken. Try another.' : r.error === 'invalid' ? 'Use 2–20 letters, numbers, dots or underscores.' : r.error === 'unauthenticated' ? 'Your session ended. Sign in again.' : 'Could not save. Check your connection.' })
+      const old = me.handle
+      st.setAccount({ ...account, handle: next })
+      // your posts already on screen follow the new name
+      useStore.setState({ comments: st.comments.map((c) => (c.accountId === account.id || c.handle === old ? { ...c, handle: next } : c)) })
+    } else st.setMe({ handle: next })
+    setMsg({ ok: true, text: 'Saved ✓' })
+  }
+  return (
+    <form
+      className="min-w-0 flex-1"
+      onSubmit={(e) => {
+        e.preventDefault()
+        save()
+      }}
+    >
+      <label className="text-[11px] tracking-[0.16em] text-fog uppercase" htmlFor="handle">
+        Username
+      </label>
+      <div className="mt-1 flex gap-2">
+        <div className="relative min-w-0 flex-1">
+          <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-white/40">@</span>
+          <input
+            id="handle"
+            className="input !pl-7"
+            value={draft}
+            maxLength={20}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            onChange={(e) => {
+              setDraft(e.target.value.replace(/^@/, '').replace(/[^a-z0-9._]/gi, '').toLowerCase())
+              setMsg(null)
+            }}
+          />
+        </div>
+        <button className="shrink-0 rounded-xl bg-gradient-to-r from-[#9945ff] to-[#14f195] px-3.5 text-[13px] font-semibold text-black disabled:opacity-35" disabled={!changed || !valid || busy}>
+          {busy ? 'Saving…' : 'Save'}
+        </button>
+      </div>
+      {msg ? (
+        <p className={`mt-1 text-[11.5px] ${msg.ok ? 'text-[#14f195]' : 'text-[#ff8a8a]'}`} role="status">
+          {msg.text}
+        </p>
+      ) : changed && !valid ? (
+        <p className="mt-1 text-[11.5px] text-fog">2–20 letters, numbers, dots or underscores.</p>
+      ) : null}
+    </form>
   )
 }
 

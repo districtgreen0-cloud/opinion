@@ -370,7 +370,22 @@ async function emailVerify(req: Request, env: Env, ctx: ExecutionContext): Promi
 
 // ---------- me / logout ----------
 
-async function patchMe(req: Request, env: Env): Promise<Response> {
+async function renameEverywhere(env: Env, accountId: string, handle: string, avatar: string): Promise<void> {
+  try {
+    const cells = await env.DB.prepare("SELECT DISTINCT cell FROM post_log WHERE account_id = ? LIMIT 200").bind(accountId).all<{ cell: string }>();
+    await env.DB.batch([
+      env.DB.prepare("UPDATE comments_index SET handle = ?1, avatar = ?2 WHERE id IN (SELECT id FROM post_log WHERE account_id = ?3)").bind(handle, avatar, accountId),
+      env.DB.prepare("UPDATE post_log SET handle = ? WHERE account_id = ?").bind(handle, accountId),
+      env.DB.prepare("UPDATE memories SET handle = ?, avatar = ? WHERE account_id = ?").bind(handle, avatar, accountId),
+      env.DB.prepare("UPDATE zk_keys SET handle = ?, avatar = ? WHERE account_id = ?").bind(handle, avatar, accountId),
+    ]);
+    await Promise.all(cells.results.map((c) => env.HEX_ROOM.getByName(c.cell).rename(accountId, handle, avatar)));
+  } catch (e) {
+    console.error(JSON.stringify({ msg: "rename_failed", error: String(e) }));
+  }
+}
+
+async function patchMe(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const row = await getAccountRow(req, env);
   if (!row) return err(req, "unauthenticated", 401);
   const body = await readJson(req);
@@ -393,6 +408,8 @@ async function patchMe(req: Request, env: Env): Promise<Response> {
     if (isUnique(e)) return err(req, "handle_taken", 409);
     throw e;
   }
+  // the new name / avatar follows the account everywhere it already appears
+  if (handle !== row.handle || avatar !== row.avatar) ctx.waitUntil(renameEverywhere(env, row.id, handle, avatar));
   return json(req, { account: toAccount({ ...row, handle, avatar }) });
 }
 
@@ -413,7 +430,7 @@ export async function handleAuth(req: Request, env: Env, ctx: ExecutionContext, 
     const account = await getAccount(req, env);
     return account ? json(req, { account }) : err(req, "unauthenticated", 401);
   }
-  if (path === "/api/auth/me" && m === "PATCH") return patchMe(req, env);
+  if (path === "/api/auth/me" && m === "PATCH") return patchMe(req, env, ctx);
   if (path === "/api/auth/logout" && m === "POST") return logout(req, env);
   return null;
 }

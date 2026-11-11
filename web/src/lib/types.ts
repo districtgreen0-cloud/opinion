@@ -11,6 +11,7 @@ export type Comment = {
   wallet?: string
   createdAt: number
   kind?: PostKind // default 'note'
+  accountId?: string // who posted it (signed-in posts)
   title?: string // topic + job
   parentId?: string // reply → topic id
   priceUsdc?: number // job

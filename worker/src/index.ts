@@ -483,6 +483,22 @@ async function route(req: Request, env: Env, ctx: ExecutionContext): Promise<Res
   const claim = path.match(/^\/api\/epochs\/(\d{1,6})\/claim$/);
   if (claim && m === "POST") return claimEpoch(req, env, Number(claim[1]));
 
+  // the author deletes their own post
+  const del = path.match(/^\/api\/hex\/([0-9a-fA-F]{15})\/comments\/([A-Za-z0-9_-]{6,64})\/delete$/);
+  if (del && m === "POST") {
+    const account = await getAccount(req, env);
+    if (!account) return err(req, "sign_in_required", 401);
+    const cell = (del[1] as string).toLowerCase();
+    const r = await env.HEX_ROOM.getByName(cell).remove(del[2] as string, account.id);
+    if (!r.ok) return err(req, r.error, r.error === "not_found" ? 404 : r.error === "forbidden" ? 403 : 409);
+    await env.DB.batch(r.ids.flatMap((id) => [
+      env.DB.prepare("DELETE FROM comments_index WHERE id = ?").bind(id),
+      env.DB.prepare("DELETE FROM post_log WHERE id = ?").bind(id),
+      env.DB.prepare("DELETE FROM jobs WHERE id = ?").bind(id),
+    ]));
+    return json(req, { ok: true, ids: r.ids });
+  }
+
   const hex = path.match(/^\/api\/hex\/([0-9a-fA-F]{15})\/(comments|ws)$/);
   if (hex) {
     const cell = (hex[1] as string).toLowerCase();

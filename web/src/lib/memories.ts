@@ -5,7 +5,7 @@ import { LIVE } from './api'
  * Memories: one camera photo per person per hex, 3 per day. Never drawn on the map.
  * Demo / share preview: photos live in this browser (IndexedDB). Live: R2 via /api/memories (same limits, enforced server-side).
  */
-export type Memory = { id: string; cell: string; handle: string; avatar: string; createdAt: number; thumb: string; full: string }
+export type Memory = { id: string; accountId?: string; cell: string; handle: string; avatar: string; createdAt: number; thumb: string; full: string }
 type Meta = Omit<Memory, 'thumb' | 'full'>
 
 export const PER_DAY = 3
@@ -110,6 +110,19 @@ export async function saveMemory(p: { cell: string; lat: number; lng: number; ha
   } catch {
     return { ok: false, reason: 'error' }
   }
+}
+
+/** Delete your own photo. */
+export async function deleteMemory(id: string): Promise<boolean> {
+  if (LIVE) {
+    const ok = await fetch(`${BASE}/api/memories/${id}/delete`, { method: 'POST', credentials: 'include' }).then((r) => r.ok).catch(() => false)
+    if (ok) changed()
+    return ok
+  }
+  writeMeta(readMeta().filter((m) => m.id !== id))
+  await idb('readwrite', (s) => s.delete(id)).catch(() => {})
+  changed()
+  return true
 }
 
 export async function reportMemory(id: string) {

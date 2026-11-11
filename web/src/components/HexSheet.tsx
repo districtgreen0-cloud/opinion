@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { cityData } from '../data/mock'
 import { toCell, cellCenter, shortCell, H3_RES } from '../lib/h3'
-import { postComment, hexSocket, LIVE, type PostResult } from '../lib/api'
+import { deleteComment, postComment, hexSocket, LIVE, type PostResult } from '../lib/api'
 import { createPortal } from 'react-dom'
 import { locate } from '../hooks/useGeolocation'
 import { ago, km, fmtKm, timeLabel } from '../lib/format'
@@ -12,7 +12,7 @@ import { Avatar, Panel } from './bits'
 import JobCard from './JobCard'
 import { Person } from './Profile'
 import CameraCapture from './CameraCapture'
-import { limitsFor, reportMemory, saveMemory, useHexMemories, type Memory } from '../lib/memories'
+import { deleteMemory, limitsFor, reportMemory, saveMemory, useHexMemories, type Memory } from '../lib/memories'
 
 type HexTab = 'topic' | 'note' | 'job' | 'memory'
 const TABS: { id: HexTab; label: string; empty: string }[] = [
@@ -206,6 +206,7 @@ export default function HexSheet() {
             <Person handle={topic.handle} avatar={topic.avatar} className="flex items-center gap-1.5"><Avatar id={topic.avatar} handle={topic.handle} size={14} /> <span className="text-white/80">{topic.handle}</span></Person> · {ago(topic.createdAt)}
           </div>
           {topic.text && <p className="mt-2 text-[14px] leading-snug text-white/85">{topic.text}</p>}
+          <DeleteOwn c={topic} label="Delete this OPINION" after={() => setOpenTopic(null)} className="mt-2" />
           <ul className="mt-4 space-y-3 border-l border-white/10 pl-3">
             {by.replies(topic.id).map((c) => (
               <PostRow key={c.id} c={c} />
@@ -254,7 +255,10 @@ export default function HexSheet() {
         <div className="space-y-2">
           {by.job.length === 0 && <Empty text={TABS[2].empty} />}
           {by.job.map((j) => (
-            <JobCard key={j.id} job={j} />
+            <div key={j.id}>
+              <JobCard job={j} />
+              <DeleteOwn c={j} label="Delete this job" className="mt-1 ml-1" />
+            </div>
           ))}
         </div>
       )}
@@ -379,6 +383,19 @@ export default function HexSheet() {
           </div>
           <img src={viewing.full} alt={`Memory by ${viewing.handle}`} className="mx-auto min-h-0 w-full max-w-[720px] flex-1 rounded-2xl object-contain" />
           <div className="mx-auto flex w-full max-w-[720px] justify-between py-3" onClick={(e) => e.stopPropagation()}>
+            {(LIVE ? !!account && viewing.accountId === account.id : viewing.handle === me.handle) && (
+              <button
+                onClick={async () => {
+                  if (!confirm('Delete this photo? This cannot be undone.')) return
+                  const ok = await deleteMemory(viewing.id)
+                  setViewing(null)
+                  s().toast(ok ? 'Photo deleted' : 'Could not delete. Try again.', ok ? 'mint' : 'ember')
+                }}
+                className="text-[11.5px] text-[#ff8a8a] hover:text-white"
+              >
+                Delete my photo
+              </button>
+            )}
             <button
               onClick={async () => {
                 await reportMemory(viewing.id)
@@ -411,8 +428,40 @@ function PostRow({ c }: { c: Comment }) {
           <Person handle={c.handle} avatar={c.avatar} className="text-white/90 hover:underline">{c.handle}</Person> · {ago(c.createdAt)}
         </div>
         <p className="text-[14px] leading-snug text-white/90">{c.text}</p>
+        <DeleteOwn c={c} />
       </div>
     </li>
+  )
+}
+
+/** "Delete" under a post, shown only to its author. */
+function DeleteOwn({ c, label = 'Delete', after, className = '' }: { c: Comment; label?: string; after?: () => void; className?: string }) {
+  const account = useStore((s) => s.account)
+  const me = useStore((s) => s.me.handle)
+  const [busy, setBusy] = useState(false)
+  // feed copies don't carry the author's account id: fall back to the handle (the server checks ownership for real)
+  const mine = LIVE ? !!account && (c.accountId ? c.accountId === account.id : c.handle === account.handle) : c.handle === me
+  if (!mine) return null
+  return (
+    <button
+      disabled={busy}
+      onClick={async (e) => {
+        e.stopPropagation()
+        if (!confirm('Delete this post? This cannot be undone.')) return
+        setBusy(true)
+        const r = await deleteComment(c.cell, c.id)
+        setBusy(false)
+        const st = useStore.getState()
+        if (!r.ok) return st.toast(r.error === 'job_in_progress' ? 'This job has money in escrow, so it can’t be deleted yet.' : 'Could not delete. Try again.', 'ember')
+        st.removeComments(r.ids)
+        st.toast('Deleted', 'mint')
+        after?.()
+      }}
+      className={`block text-[11px] text-[#ff8a8a]/80 hover:text-[#ff8a8a] ${className}`}
+      aria-label={label}
+    >
+      {busy ? 'Deleting…' : label}
+    </button>
   )
 }
 

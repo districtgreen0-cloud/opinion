@@ -22,8 +22,8 @@ const MAX_FULL = 900 * 1024;
 const MAX_THUMB = 120 * 1024;
 const HIDE_AT = 3;
 
-type Row = { id: string; handle: string; avatar: string; cell: string; full_key: string; thumb_key: string; created_at: number };
-const out = (r: Row) => ({ id: r.id, handle: r.handle, avatar: r.avatar, cell: r.cell, createdAt: r.created_at, full: `/api/media/${r.full_key}`, thumb: `/api/media/${r.thumb_key}` });
+type Row = { id: string; account_id: string; handle: string; avatar: string; cell: string; full_key: string; thumb_key: string; created_at: number };
+const out = (r: Row) => ({ id: r.id, accountId: r.account_id, handle: r.handle, avatar: r.avatar, cell: r.cell, createdAt: r.created_at, full: `/api/media/${r.full_key}`, thumb: `/api/media/${r.thumb_key}` });
 
 /** Real image bytes only: WebP (RIFF....WEBP) or JPEG (FF D8 FF). Content-Type headers are not trusted. */
 function sniff(b: Uint8Array): "image/webp" | "image/jpeg" | null {
@@ -75,7 +75,7 @@ async function create(req: Request, env: Env): Promise<Response> {
   const thumbKey = `memories/${cell}/${id}_t.${ext(tt)}`;
   const meta = (t: string) => ({ httpMetadata: { contentType: t, cacheControl: "public, max-age=31536000, immutable" } });
   await Promise.all([env.MEDIA.put(fullKey, fullBytes, meta(ft)), env.MEDIA.put(thumbKey, thumbBytes, meta(tt))]);
-  const row: Row = { id, handle: acc.handle ?? "anon", avatar: acc.avatar ?? "", cell, full_key: fullKey, thumb_key: thumbKey, created_at: now };
+  const row: Row = { id, account_id: acc.id, handle: acc.handle ?? "anon", avatar: acc.avatar ?? "", cell, full_key: fullKey, thumb_key: thumbKey, created_at: now };
   try {
     await env.DB.prepare("INSERT INTO memories (id, account_id, handle, avatar, cell, full_key, thumb_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
       .bind(id, acc.id, row.handle, row.avatar, cell, fullKey, thumbKey, now).run();
@@ -89,7 +89,7 @@ async function create(req: Request, env: Env): Promise<Response> {
 async function list(req: Request, env: Env, url: URL): Promise<Response> {
   const cell = (url.searchParams.get("cell") ?? "").toLowerCase();
   if (!isValidCell(cell)) return err(req, "invalid_cell", 400);
-  const rows = (await env.DB.prepare("SELECT id, handle, avatar, cell, full_key, thumb_key, created_at FROM memories WHERE cell = ? AND hidden = 0 ORDER BY created_at DESC LIMIT 60").bind(cell).all<Row>()).results;
+  const rows = (await env.DB.prepare("SELECT id, account_id, handle, avatar, cell, full_key, thumb_key, created_at FROM memories WHERE cell = ? AND hidden = 0 ORDER BY created_at DESC LIMIT 60").bind(cell).all<Row>()).results;
   return json(req, { memories: rows.map(out) });
 }
 
@@ -100,6 +100,18 @@ async function report(req: Request, env: Env, id: string): Promise<Response> {
   if (r.meta.changes) {
     await env.DB.prepare("UPDATE memories SET reports = reports + 1, hidden = CASE WHEN reports + 1 >= ? THEN 1 ELSE hidden END WHERE id = ?").bind(HIDE_AT, id).run();
   }
+  return json(req, { ok: true });
+}
+
+/** The owner deletes their photo: the files and the record go. */
+async function remove(req: Request, env: Env, id: string): Promise<Response> {
+  const acc = await getAccount(req, env);
+  if (!acc) return err(req, "sign_in_required", 401);
+  const row = await env.DB.prepare("SELECT account_id, full_key, thumb_key FROM memories WHERE id = ?").bind(id).first<{ account_id: string; full_key: string; thumb_key: string }>();
+  if (!row) return err(req, "not_found", 404);
+  if (row.account_id !== acc.id) return err(req, "forbidden", 403);
+  if (env.MEDIA) await env.MEDIA.delete([row.full_key, row.thumb_key]);
+  await env.DB.batch([env.DB.prepare("DELETE FROM memories WHERE id = ?").bind(id), env.DB.prepare("DELETE FROM memory_reports WHERE memory_id = ?").bind(id)]);
   return json(req, { ok: true });
 }
 
@@ -119,6 +131,8 @@ export async function handleMemories(req: Request, env: Env, url: URL, path: str
   if (path === "/api/memories" && m === "GET") return list(req, env, url);
   const rep = path.match(/^\/api\/memories\/([0-9a-f-]{36})\/report$/);
   if (rep && m === "POST") return report(req, env, rep[1] as string);
+  const del = path.match(/^\/api\/memories\/([0-9a-f-]{36})\/delete$/);
+  if (del && m === "POST") return remove(req, env, del[1] as string);
   if (path.startsWith("/api/media/") && m === "GET") return media(req, env, path.slice("/api/media/".length));
   return null;
 }

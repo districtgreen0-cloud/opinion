@@ -154,6 +154,24 @@ export class HexRoom extends DurableObject<Env> {
     return comment;
   }
 
+  /** RPC: the author removes their own post (replies under an OPINION go with it). Jobs with money in escrow stay. */
+  remove(id: string, accountId: string): { ok: true; ids: string[] } | { ok: false; error: "not_found" | "forbidden" | "job_in_progress" } {
+    const sql = this.ctx.storage.sql;
+    const row = sql.exec<{ account_id: string | null; kind: string | null; job_status: string | null }>("SELECT account_id, kind, job_status FROM comments WHERE id = ?", id).toArray()[0];
+    if (!row) return { ok: false, error: "not_found" };
+    if (!row.account_id || row.account_id !== accountId) return { ok: false, error: "forbidden" };
+    if (row.kind === "job" && ["funded", "taken", "delivered"].includes(row.job_status ?? "")) return { ok: false, error: "job_in_progress" };
+    const ids = sql.exec<{ id: string }>("SELECT id FROM comments WHERE id = ? OR parent_id = ?", id, id).toArray().map((r) => r.id);
+    sql.exec("DELETE FROM comments WHERE id = ? OR parent_id = ?", id, id);
+    this.broadcast({ type: "purge", ids });
+    return { ok: true, ids };
+  }
+
+  /** RPC: an account changed its handle / avatar → its posts in this hex follow. */
+  rename(accountId: string, handle: string, avatar: string): void {
+    this.ctx.storage.sql.exec("UPDATE comments SET handle = ?, avatar = ? WHERE account_id = ?", handle, avatar, accountId);
+  }
+
   /** RPC (admin): delete every post by these handles or account ids (test accounts, takedowns). Returns the ids removed. */
   purge(handles: string[], accountIds: string[] = []): string[] {
     const sql = this.ctx.storage.sql;

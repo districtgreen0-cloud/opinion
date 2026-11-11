@@ -68,6 +68,18 @@ export async function fetchFeed(): Promise<Comment[] | null> {
   }
 }
 
+/** Delete your own post (its replies go with it). */
+export async function deleteComment(cell: string, id: string): Promise<{ ok: true; ids: string[] } | { ok: false; error: string }> {
+  if (!LIVE) return { ok: true, ids: [id] }
+  try {
+    const r = await fetch(`${BASE}/api/hex/${cell}/comments/${id}/delete`, { method: 'POST', credentials: 'include' })
+    const j = (await r.json().catch(() => ({}))) as { ids?: string[]; error?: string }
+    return r.ok ? { ok: true, ids: j.ids ?? [id] } : { ok: false, error: j.error ?? 'error' }
+  } catch {
+    return { ok: false, error: 'network' }
+  }
+}
+
 export function hexSocket(cell: string, onComment: (c: Comment) => void, onPurge?: (ids: string[]) => void): () => void {
   if (!LIVE) return () => {}
   const url = (BASE || location.origin).replace(/^http/, 'ws') + `/api/hex/${cell}/ws`
